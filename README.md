@@ -28,7 +28,7 @@ npm run build # production bundle
 
 ## Cards
 
-Each card prints **four side ranks** — Top, Right, Bottom, Left — in hex **1–A** (1–10), like a Triple Triad layout. Some cards also show an **element** glyph in the upper-right. A numbered **level badge** sits beside the gem (1–10). There are no arrows and no P/M/X/A battle types.
+Each card prints **four side ranks** — Top, Right, Bottom, Left — in hex **1–A** (1–10), like a Triple Triad layout. Some cards also show an **element** glyph in the upper-right. A numbered **level badge** sits beside the gem (1–10).
 
 **Total value** is Top + Right + Bottom + Left. Rank ceiling is the highest of those four.
 
@@ -51,7 +51,7 @@ All names and illustrations are original dark-fantasy champions — paladins, li
 
 ## Capture rules
 
-When you place a card, it compares **touching sides** with every orthogonally adjacent enemy (no diagonals, no arrows).
+When you place a card, it compares **touching sides** with every orthogonally adjacent enemy (no diagonals).
 
 - Your **Right** vs their **Left**
 - Your **Left** vs their **Right**
@@ -66,7 +66,7 @@ Friendly cards are never attacked.
 
 ## Battle comparison
 
-Clashes are a **higher-number-wins** side compare. **6 beats 3.** A clearly lower printed rank cannot beat a higher one — there are no P/M/X/A battle types and no Tetra Master hex-band rolls.
+Clashes are a **higher-number-wins** side compare. **6 beats 3.** A clearly lower printed rank cannot beat a higher one.
 
 The log shows it plainly: `6 vs 3 — capture`.
 
@@ -109,7 +109,7 @@ Lady Vesper is a wandering rival with a mixed deck and no reserved ultimates.
 
 Vite + vanilla JS. Game rules live in `src/game.js` (pure, unit-tested). Card roster: `src/cards.js`. Original SVG portraits: `src/art.js`. Session album, trades, and bosses: `src/campaign.js`.
 
-Inspired by Triple Triad’s side-rank captures and a gothic table — blue/pink ownership, elemental icons, and a “You Win!” banner — rebuilt with original work only.
+Inspired by Triple Triad’s side-rank captures. Tetra Master inspired only the old board and parchment look (3×3 grid, cream title/help plaques, “You Win!” banner) — combat is touching-side number compares, not Attack / P / M / X / A clashes. Blue/pink ownership, elemental icons, and original gothic art.
 
 ## Visuals
 

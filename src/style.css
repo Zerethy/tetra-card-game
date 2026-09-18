@@ -255,36 +255,6 @@ button {
   color: #d8c0f4;
 }
 
-.hud-type-cycle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  margin: 6px 0 0;
-}
-
-.hud-type-cycle .type-pip {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  border-radius: 4px;
-  font-family: Cinzel, serif;
-  font-weight: 800;
-  font-size: 10px;
-  color: #f4ead4;
-  background: linear-gradient(180deg, #3a2c1c, #1a120c);
-  border: 1px solid #8a6418;
-}
-
-.hud-type-cycle i {
-  width: 0;
-  height: 0;
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
-  border-left: 6px solid #6a4818;
-}
-
 .clash-flash {
   position: absolute;
   left: 50%;
@@ -1028,13 +998,13 @@ button {
 
 .tm-ranks .rk {
   position: absolute;
-  min-width: 1.15em;
-  padding: 1px 4px 0;
+  min-width: 1.2em;
+  padding: 1px 5px 0;
   text-align: center;
   line-height: 1.05;
-  font-size: clamp(10px, 8.4cqh, 18px);
-  background: linear-gradient(180deg, rgba(12, 8, 24, 0.88), rgba(6, 2, 16, 0.94));
-  border: 1px solid rgba(230, 200, 255, 0.55);
+  font-size: clamp(11px, 9cqh, 20px);
+  background: linear-gradient(180deg, rgba(12, 8, 24, 0.92), rgba(6, 2, 16, 0.96));
+  border: 1px solid rgba(230, 200, 255, 0.7);
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 0 8px rgba(180, 60, 255, 0.25);
 }
@@ -1746,14 +1716,8 @@ button {
     height: 15px;
   }
 
-  .hud-wheel-title,
-  .hud-type-cycle .type-pip {
+  .hud-wheel-title {
     font-size: 8px;
-  }
-
-  .hud-type-cycle .type-pip {
-    width: 14px;
-    height: 14px;
   }
 }
 
