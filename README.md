@@ -114,14 +114,33 @@ Wheels (clockwise beats), also shown on the parchment plaque in the top-left of 
 
 ## AI
 
-Lady Vesper plays from her drawn hand. She scores each legal (card, empty square) pair by expected captures, clash odds from printed stats, center control, and a little noise — then places the best move.
+Rivals play from their drawn hand. Lady Vesper and the named bosses score each legal (card, empty square) pair by expected captures, clash odds from printed stats, center control, and a little noise — then place the best move.
+
+## Trades, bosses, and Death Match
+
+Before **New Match**, pick a **trade rule** and a rival. Your session album (about a dozen starters) is stored in `localStorage`.
+
+| Rule | Winner takes |
+|------|----------------|
+| **One** | 1 card from the loser’s wagered set (player picks; AI auto-picks highest level) |
+| **Three** | up to 3 cards |
+| **All** | the entire wagered set |
+| **Diff** | as many cards as the score difference |
+
+A draw moves no cards. After a win, **Move On** applies that trade and returns to the title. Bosses each keep **three ultimates** (level 6–10), shown before the match and preferred in the claim list:
+
+- **Lord Cindervow** — Cinder Behemoth, Ashen Phoenix, Hellforge Tyrant
+- **Duchess Mireveil** — Voidglass Lich, Abyssal Countess, Pearl Seraph
+- **Warden Ferric** — Iron Vow, Gilded Colossus, Runebound Golem
+
+**Death Match** is never required after a clean win. It is an opt-in gamble for bigger stakes, and it is the only path when your album is down to **one card**. Each side pulls one card at random and clashes; the loser pays **two more** than the table trade (All pays the wager plus two vault cards, if any remain).
 
 ## Project
 
-Vite + vanilla JS. Game rules live in `src/game.js` (pure, unit-tested). Card roster: `src/cards.js`. Original SVG portraits: `src/art.js`.
+Vite + vanilla JS. Game rules live in `src/game.js` (pure, unit-tested). Card roster: `src/cards.js`. Original SVG portraits: `src/art.js`. Session album, trades, and bosses: `src/campaign.js`.
 
-Inspired by the look of Tetra Master’s parchment table, blue/pink ownership, top-left stats, elemental icons, and “You Win!” banner — rebuilt with original work only.
+Inspired by the look of Tetra Master’s table, blue/pink ownership, top-left stats, elemental icons, and “You Win!” banner — rebuilt with original work only.
 
 ## Visuals
 
-Cards use a tall premium TCG layout: thick color-coded beveled frames (crimson warrior, ivory cleric, void rogue, azure mage, and others by element), a bone-and-iron inner trim, a serif name bar with a **level badge** plus elemental gem, a large painted portrait window, a metal type line (Beast / Warlord / Relic / Sovereign), and a spell-tome flavor box with real English text. Face chrome leans gothic-druid — wrought iron, thorn corners, candlelit portraits, cursed-forest mist — while Tetra Master stats stay readable on the portrait (Attack, P/M/X/A, physical and magical defense) and again in a small box on the text area, with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Face-down cards (opponent hand and the title-screen fan) use an original **purple-celestial Aetherbound back**: nebula, constellation lines, crescent sigil, no third-party branding. Portraits are original painted-style SVGs. Level sheen (epic/legendary) is cosmetic.
+The play table is a **neon-purple** celestial board (vivid glow, darker wells for the nine squares) so cards stay readable. Cards use a tall premium TCG layout: thick color-coded beveled frames (crimson warrior, ivory cleric, void rogue, azure mage, and others by element), a bone-and-iron inner trim, a serif name bar with a **level badge** plus elemental gem, a large painted portrait window, a metal type line (Beast / Warlord / Relic / Sovereign), and a spell-tome flavor box with real English text. Face chrome leans gothic-druid — wrought iron, thorn corners, candlelit portraits, cursed-forest mist — while Tetra Master stats stay readable on the portrait (Attack, P/M/X/A, physical and magical defense) and again in a small box on the text area, with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Face-down cards (opponent hand and the title-screen fan) use an original **purple-celestial Aetherbound back**: nebula, constellation lines, crescent sigil, no third-party branding. Portraits are original painted-style SVGs. Level sheen (epic/legendary) is cosmetic.

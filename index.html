@@ -65,6 +65,14 @@
           Draw five dark-fantasy champions, place them on the ninefold grid, and capture
           your rival with arrows, clashes, and combos.
         </p>
+        <div class="setup-panel">
+          <p class="setup-label">Trade rule</p>
+          <div class="chip-row" id="trade-row" role="group" aria-label="Trade rule"></div>
+          <p class="setup-label">Rival</p>
+          <div class="chip-row" id="rival-row" role="group" aria-label="Rival"></div>
+          <div class="boss-ultimates" id="boss-ultimates"></div>
+          <p class="collection-line" id="collection-line"></p>
+        </div>
         <div class="title-actions">
           <button type="button" id="start-btn" class="seal-btn">New Match</button>
           <button type="button" id="title-help-btn" class="text-btn">How to Play</button>
@@ -89,8 +97,36 @@
           Battle types cycle <strong>A ▸ X ▸ P ▸ M ▸ A</strong> (+1 Attack). Elements follow the three wheels on the plaque (+2 Attack).
           <strong>P</strong> Physical vs P.Def · <strong>M</strong> Magical vs M.Def ·
           <strong>X</strong> Flexible vs lower defense · <strong>A</strong> Assault vs the defender’s lowest stat.
+          Before a match, pick a <strong>trade rule</strong> (One / Three / All / Diff) and a rival. Bosses each hold three ultimates. After a win, <strong>Move On</strong> claims the trade; <strong>Death Match</strong> is optional (or forced at one card) and the loser pays more.
         </p>
         <button type="button" id="close-help" class="seal-btn">Close</button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="claim-overlay">
+      <div class="help-card claim-card">
+        <h2 id="claim-title">Claim</h2>
+        <p class="lede" id="claim-lede"></p>
+        <div class="claim-grid" id="claim-grid"></div>
+        <p class="claim-note" id="claim-note"></p>
+        <div class="title-actions claim-actions">
+          <button type="button" id="claim-confirm" class="seal-btn">Move On</button>
+          <button type="button" id="death-optin" class="text-btn">Death Match</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="death-overlay">
+      <div class="help-card death-card">
+        <p class="eyebrow">Sudden death</p>
+        <h2>Death Match</h2>
+        <p class="lede" id="death-lede">Each side pulls one card. The loser pays a harsher stake.</p>
+        <div class="death-duel" id="death-duel"></div>
+        <p class="claim-note" id="death-note"></p>
+        <div class="title-actions">
+          <button type="button" id="death-go" class="seal-btn">Pull Cards</button>
+          <button type="button" id="death-done" class="seal-btn hidden">Continue</button>
+        </div>
       </div>
     </div>
 

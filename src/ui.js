@@ -1,4 +1,4 @@
-import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord, levelOf, ELEMENT_RINGS, TYPE_CYCLE } from './cards.js';
+import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord, levelOf, ELEMENT_RINGS, TYPE_CYCLE, cardById } from './cards.js';
 import { creatureSVG, cardBackSVG, elementGlyph } from './art.js';
 
 const ARROW_SVG = `<svg class="arr-svg" viewBox="0 0 24 20" aria-hidden="true"><path d="M12 1.6 L22.8 18.6 H1.2 Z"/></svg>`;
@@ -128,3 +128,36 @@ export function clashFlashHtml(battle) {
   if (!bits.length) return '';
   return `<div class="clash-flash">${bits.join('')}</div>`;
 }
+
+export function renderChip(id, label, selected, extra = '') {
+  return `<button type="button" class="chip${selected ? ' selected' : ''}" data-id="${escapeText(id)}">${escapeText(label)}${extra}</button>`;
+}
+
+export function renderUltimateStrip(boss, claimedIds = []) {
+  if (!boss?.ultimates?.length) {
+    return `<p class="ultimate-empty">No reserved ultimates — a mixed wandering deck.</p>`;
+  }
+  const claimed = new Set(claimedIds);
+  const cards = boss.ultimates.map((id, i) => {
+    const html = renderCard({ ...cardTemplate(id), instanceId: `ult-${i}`, owner: 'ai' }, { surface: `ult${i}`, showName: true });
+    const owned = claimed.has(id) ? ' claimed' : '';
+    return `<div class="ultimate-slot${owned}" data-id="${id}">${html}<span class="ult-tag">Ultimate</span></div>`;
+  });
+  return `<p class="setup-label">${escapeText(boss.name)}’s ultimates</p><div class="ultimate-row">${cards.join('')}</div>`;
+}
+
+function cardTemplate(id) {
+  const t = cardById(id);
+  return t ? { ...t } : { id, name: id, title: '', attack: 0, type: 'P', pdef: 0, mdef: 0, arrows: 0, element: null, art: 'drake', level: 1 };
+}
+
+export function renderClaimCard(card, options = {}) {
+  const selected = options.selected ? ' selected' : '';
+  const locked = options.locked ? ' locked' : '';
+  const ult = options.ultimate ? ' ultimate' : '';
+  return `<button type="button" class="claim-pick${selected}${locked}${ult}" data-uid="${escapeText(card.uid || card.instanceId)}" data-id="${escapeText(card.id)}">
+    ${renderCard(card, { surface: options.surface || 'claim', owner: card.owner || 'ai', showName: true })}
+    ${options.ultimate ? '<span class="ult-tag">Ultimate</span>' : ''}
+  </button>`;
+}
+

@@ -71,24 +71,30 @@ export function dealStarterDecks(roster, rng) {
 export function createMatch(options = {}) {
   const seed = options.seed ?? Math.floor(Math.random() * 2 ** 31);
   const rng = options.rng || mulberry32(seed);
-  const dealt = dealStarterDecks(ROSTER, rng);
+  const dealt = options.playerTemplates && options.aiTemplates
+    ? { player: options.playerTemplates, ai: options.aiTemplates }
+    : dealStarterDecks(ROSTER, rng);
   let nextId = 1;
 
   const playerDeck = dealt.player.map((c) => instanceCard(c, 'player', nextId++));
   const aiDeck = dealt.ai.map((c) => instanceCard(c, 'ai', nextId++));
 
-  const playerHand = playerDeck.splice(0, HAND_SIZE);
-  const aiHand = aiDeck.splice(0, HAND_SIZE);
+  const playerHand = playerDeck.splice(0, Math.min(HAND_SIZE, playerDeck.length));
+  const aiHand = aiDeck.splice(0, Math.min(HAND_SIZE, aiDeck.length));
+
+  const phase = playerHand.length ? 'player' : aiHand.length ? 'ai' : 'ended';
 
   return {
     seed,
-    phase: 'player',
+    phase,
     board: Array(BOARD_SIZE).fill(null),
     player: { deck: playerDeck, hand: playerHand },
     ai: { deck: aiDeck, hand: aiHand },
     events: [],
     winner: null,
     rng,
+    tradeRule: options.tradeRule || 'one',
+    rivalId: options.rivalId || 'vesper',
   };
 }
 
@@ -315,16 +321,30 @@ export function placeCard(state, owner, handIndex, cellIndex) {
   events.unshift({ type: 'place', cell: cellIndex, name: card.name, owner });
   state.events = events;
 
+  advancePhase(state, owner);
+
+  return { ok: true, events };
+}
+
+function sideHasCards(state, who) {
+  const side = who === 'player' ? state.player : state.ai;
+  return side.hand.length > 0;
+}
+
+export function advancePhase(state, afterOwner) {
   const remaining = emptyCells(state.board);
-  if (remaining.length === 0) {
+  const other = afterOwner === 'player' ? 'ai' : 'player';
+  if (remaining.length === 0 || (!sideHasCards(state, 'player') && !sideHasCards(state, 'ai'))) {
     state.phase = 'ended';
     const s = scores(state);
     state.winner = s.player > s.ai ? 'player' : s.ai > s.player ? 'ai' : 'draw';
-  } else {
-    state.phase = owner === 'player' ? 'ai' : 'player';
+    return;
   }
-
-  return { ok: true, events };
+  if (sideHasCards(state, other)) {
+    state.phase = other;
+  } else {
+    state.phase = afterOwner;
+  }
 }
 
 export function scores(state) {

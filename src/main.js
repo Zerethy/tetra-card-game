@@ -1,6 +1,34 @@
-import { createMatch, placeCard, scores } from './game.js';
+import { createMatch, placeCard, scores, mulberry32 } from './game.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderCardBack, renderElementWheel, clashFlashHtml } from './ui.js';
+import {
+  renderCard,
+  renderCardBack,
+  renderElementWheel,
+  clashFlashHtml,
+  renderChip,
+  renderUltimateStrip,
+  renderClaimCard,
+} from './ui.js';
+import {
+  BOSSES,
+  TRADE_RULES,
+  loadCampaign,
+  saveCampaign,
+  resetCampaign,
+  bossById,
+  hydrateOwned,
+  pickWager,
+  buildBossDeck,
+  buildAiVault,
+  tradeTakeCount,
+  deathTakeCount,
+  autoPickHighest,
+  preferUltimates,
+  applyWin,
+  applyLoss,
+  isUltimateId,
+  resolveShowdown,
+} from './campaign.js';
 
 const els = {
   title: document.getElementById('title-overlay'),
@@ -25,8 +53,26 @@ const els = {
   again: document.getElementById('again-btn'),
   wheel: document.getElementById('hud-wheel'),
   titleDeck: document.getElementById('title-deck'),
+  tradeRow: document.getElementById('trade-row'),
+  rivalRow: document.getElementById('rival-row'),
+  bossUltimates: document.getElementById('boss-ultimates'),
+  collectionLine: document.getElementById('collection-line'),
+  claim: document.getElementById('claim-overlay'),
+  claimTitle: document.getElementById('claim-title'),
+  claimLede: document.getElementById('claim-lede'),
+  claimGrid: document.getElementById('claim-grid'),
+  claimNote: document.getElementById('claim-note'),
+  claimConfirm: document.getElementById('claim-confirm'),
+  deathOptin: document.getElementById('death-optin'),
+  death: document.getElementById('death-overlay'),
+  deathLede: document.getElementById('death-lede'),
+  deathDuel: document.getElementById('death-duel'),
+  deathNote: document.getElementById('death-note'),
+  deathGo: document.getElementById('death-go'),
+  deathDone: document.getElementById('death-done'),
 };
 
+let campaign = loadCampaign();
 let match = null;
 let selected = null;
 let busy = false;
@@ -34,6 +80,13 @@ let lastPlaced = null;
 let captureCells = new Set();
 let clashFlashes = new Map();
 let audioCtx = null;
+let session = null;
+let claimState = null;
+let deathState = null;
+
+function rivalName() {
+  return bossById(campaign.rival).name;
+}
 
 function audio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -72,22 +125,108 @@ function sfx(kind) {
   if (kind === 'lose') tone(98, 0.4, 'sawtooth', 0.05);
 }
 
-function startMatch() {
-  match = createMatch();
+function persist() {
+  saveCampaign(campaign);
+  renderSetup();
+}
+
+function renderSetup() {
+  if (els.tradeRow) {
+    els.tradeRow.innerHTML = TRADE_RULES.map((rule) =>
+      renderChip(rule.id, rule.name, campaign.trade === rule.id),
+    ).join('');
+  }
+  if (els.rivalRow) {
+    els.rivalRow.innerHTML = BOSSES.map((boss) =>
+      renderChip(boss.id, boss.name, campaign.rival === boss.id),
+    ).join('');
+  }
+  const boss = bossById(campaign.rival);
+  if (els.bossUltimates) els.bossUltimates.innerHTML = renderUltimateStrip(boss, campaign.claimedUltimates);
+  const n = campaign.player.length;
+  const ults = campaign.claimedUltimates.length;
+  if (els.collectionLine) {
+    els.collectionLine.innerHTML =
+      n === 0
+        ? `Album empty. <button type="button" class="text-btn" id="rebuild-album">Rebuild starter album</button>`
+        : `Album · <strong>${n}</strong> card${n === 1 ? '' : 's'} · ${ults} ultimate${ults === 1 ? '' : 's'} claimed`;
+  }
+  if (els.start) {
+    if (n === 0) els.start.textContent = 'Rebuild Album';
+    else if (n === 1) els.start.textContent = 'Death Match';
+    else els.start.textContent = 'New Match';
+  }
+}
+
+function openTitle() {
+  els.title.classList.remove('hidden');
+  els.claim?.classList.add('hidden');
+  els.death?.classList.add('hidden');
+  els.result.classList.add('hidden');
+  els.again.classList.add('hidden');
+  els.wheel.classList.add('hidden');
+  match = null;
+  session = null;
+  claimState = null;
+  deathState = null;
+  renderSetup();
+  render();
+}
+
+function beginDuel() {
+  const rng = mulberry32((Math.random() * 2 ** 31) | 0);
+  const boss = bossById(campaign.rival);
+  const playerHydrated = campaign.player.map(hydrateOwned).filter(Boolean);
+  const playerWager = pickWager(playerHydrated, 8, rng);
+  const aiTemplates = buildBossDeck(boss, rng);
+  const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || `ai-${t.id}-${Math.random().toString(36).slice(2, 6)}` }));
+  const vault = buildAiVault(aiWager, 2, rng).map(hydrateOwned).filter(Boolean);
+
+  session = {
+    boss,
+    trade: campaign.trade,
+    playerWager,
+    aiWager,
+    aiVault: vault,
+    playerCollectionSize: campaign.player.length,
+  };
+
+  match = createMatch({
+    playerTemplates: playerWager,
+    aiTemplates: aiWager,
+    tradeRule: campaign.trade,
+    rivalId: boss.id,
+  });
   selected = null;
   busy = false;
   lastPlaced = null;
   captureCells = new Set();
   clashFlashes = new Map();
   els.title.classList.add('hidden');
+  els.claim?.classList.add('hidden');
+  els.death?.classList.add('hidden');
   els.result.classList.add('hidden');
   els.wheel.classList.remove('hidden');
   if (!els.wheel.dataset.ready) {
     els.wheel.innerHTML = renderElementWheel();
     els.wheel.dataset.ready = '1';
   }
-  els.log.textContent = 'Hands drawn. Five champions each.';
+  els.log.textContent = `${boss.name} accepts the ${campaign.trade} trade. Hands drawn.`;
   render();
+}
+
+function startMatch() {
+  if (campaign.player.length === 0) {
+    campaign = resetCampaign(campaign);
+    persist();
+    els.log.textContent = 'A fresh starter album is bound.';
+    return;
+  }
+  if (campaign.player.length === 1) {
+    openDeathMatch({ fromTitle: true });
+    return;
+  }
+  beginDuel();
 }
 
 function render() {
@@ -154,17 +293,18 @@ function render() {
       ? ''
       : `${match.player.hand[selected].name} · Lv.${match.player.hand[selected].level} · ${match.player.hand[selected].title}`;
   } else if (match.phase === 'ai') {
-    els.status.textContent = 'Lady Vesper studies the grid…';
+    els.status.textContent = `${rivalName()} studies the grid…`;
     els.hint.textContent = '';
   } else if (match.phase === 'ended') {
     const result = match.winner === 'player' ? 'Victory' : match.winner === 'ai' ? 'Defeat' : 'Draw';
     els.status.textContent = `${result}. Blue ${s.player} — Pink ${s.ai}.`;
-    els.hint.textContent = 'Start a new match to draw again.';
+    els.hint.textContent = match.winner === 'draw' ? 'No trade on a draw. Move On to return.' : 'Collect the trade, or risk a Death Match.';
   }
 
   if (match.phase === 'ended') showResult();
   else els.result.classList.add('hidden');
   els.again.classList.toggle('hidden', match.phase !== 'ended');
+  if (match.phase === 'ended') els.again.textContent = match.winner === 'draw' ? 'Move On' : 'Collect';
 }
 
 function showResult() {
@@ -216,7 +356,7 @@ function afterPlace(events, who) {
     const html = clashFlashHtml(ev);
     if (html) clashFlashes.set(ev.defenderCell, html);
   }
-  els.log.textContent = describeEvents(events) || `${who === 'player' ? 'You' : 'Lady Vesper'} placed a card.`;
+  els.log.textContent = describeEvents(events) || `${who === 'player' ? 'You' : rivalName()} placed a card.`;
   if (events.some((e) => e.type === 'counter')) sfx('counter');
   else if (events.some((e) => e.type === 'capture' || e.type === 'combo')) sfx('capture');
   else sfx('place');
@@ -231,6 +371,11 @@ function afterPlace(events, who) {
       busy = false;
     } else if (match.phase === 'ai' && who === 'player') {
       window.setTimeout(aiTurn, 700);
+    } else if (match.phase === 'player' && who === 'ai') {
+      busy = false;
+      render();
+    } else if (match.phase === 'ai') {
+      window.setTimeout(aiTurn, 500);
     } else {
       busy = false;
       render();
@@ -243,6 +388,11 @@ function aiTurn() {
     busy = false;
     return;
   }
+  if (!match.ai.hand.length) {
+    busy = false;
+    render();
+    return;
+  }
   const move = chooseAiMove(match);
   const result = placeCard(match, 'ai', move.handIndex, move.cellIndex);
   if (!result.ok) {
@@ -251,6 +401,189 @@ function aiTurn() {
     return;
   }
   afterPlace(result.events, 'ai');
+}
+
+function openClaim() {
+  if (!session || !match || match.phase !== 'ended') {
+    openTitle();
+    return;
+  }
+  const s = scores(match);
+  const boss = session.boss;
+  const rule = session.trade;
+  if (match.winner === 'draw') {
+    claimState = { mode: 'draw', need: 0, selected: [], pool: [], locked: true };
+    els.claimTitle.textContent = 'Draw Game';
+    els.claimLede.textContent = 'Neither album moves on a draw. Move On to return to the table.';
+    els.claimGrid.innerHTML = '';
+    els.claimNote.textContent = '';
+    els.claimConfirm.textContent = 'Move On';
+    els.deathOptin.classList.add('hidden');
+    els.claim.classList.remove('hidden');
+    return;
+  }
+
+  const playerWon = match.winner === 'player';
+  const pool = playerWon
+    ? preferUltimates(session.aiWager, boss.ultimates)
+    : session.playerWager.slice();
+  const need = tradeTakeCount(rule, pool.length, s.player - s.ai);
+  const auto = playerWon
+    ? (rule === 'all' ? pool.slice(0, need) : [])
+    : autoPickHighest(pool, need);
+  claimState = {
+    mode: playerWon ? 'win' : 'lose',
+    need,
+    selected: auto.map((c) => c.uid),
+    pool,
+    locked: !playerWon || rule === 'all',
+    rule,
+  };
+  els.claimTitle.textContent = playerWon ? 'Claim the trade' : `${boss.name} claims`;
+  els.claimLede.textContent = playerWon
+    ? `Trade ${rule}: choose ${need} card${need === 1 ? '' : 's'} from ${boss.name}. Ultimates sit first.`
+    : `You lost the ${rule} trade. ${boss.name} takes ${need} card${need === 1 ? '' : 's'}.`;
+  renderClaimGrid();
+  els.claimConfirm.textContent = 'Move On';
+  const lastCard = campaign.player.length <= 1 || pool.length <= 1;
+  els.deathOptin.classList.toggle('hidden', false);
+  els.deathOptin.textContent = lastCard ? 'Death Match' : 'Death Match (opt in)';
+  els.claim.classList.remove('hidden');
+}
+
+function renderClaimGrid() {
+  if (!claimState) return;
+  const selected = new Set(claimState.selected);
+  els.claimGrid.innerHTML = claimState.pool
+    .map((card, i) =>
+      renderClaimCard(
+        { ...card, owner: claimState.mode === 'win' ? 'ai' : 'player', instanceId: card.uid || i },
+        {
+          surface: `cl${i}`,
+          selected: selected.has(card.uid),
+          locked: claimState.locked,
+          ultimate: isUltimateId(card.id, session?.boss),
+        },
+      ),
+    )
+    .join('');
+  const have = claimState.selected.length;
+  els.claimNote.textContent = claimState.locked
+    ? `${have} card${have === 1 ? '' : 's'} will move.`
+    : `Selected ${have} / ${claimState.need}.`;
+}
+
+function confirmClaim() {
+  if (!claimState || !session) {
+    openTitle();
+    return;
+  }
+  if (claimState.mode === 'draw') {
+    openTitle();
+    return;
+  }
+  if (!claimState.locked && claimState.selected.length !== claimState.need) {
+    els.claimNote.textContent = `Select exactly ${claimState.need}.`;
+    return;
+  }
+  const chosen = claimState.pool.filter((c) => claimState.selected.includes(c.uid));
+  if (claimState.mode === 'win') {
+    campaign = applyWin(campaign, chosen, session.boss);
+  } else {
+    campaign = applyLoss(campaign, chosen.map((c) => c.uid));
+  }
+  persist();
+  openTitle();
+}
+
+function openDeathMatch(opts = {}) {
+  const rng = mulberry32((Math.random() * 2 ** 31) | 0);
+  const boss = session?.boss || bossById(campaign.rival);
+  const playerPool = (session?.playerWager?.length ? session.playerWager : campaign.player.map(hydrateOwned)).filter(Boolean);
+  const aiPool = [
+    ...(session?.aiWager || []),
+    ...(session?.aiVault || []),
+  ].filter(Boolean);
+  const aiFallback = aiPool.length ? aiPool : buildBossDeck(boss, rng).map((t) => ({ ...t, uid: newUidSafe() }));
+  const playerCard = playerPool[Math.floor(rng() * playerPool.length)] || hydrateOwned(campaign.player[0]);
+  const aiCard = aiFallback[Math.floor(rng() * aiFallback.length)];
+  const rule = session?.trade || campaign.trade;
+  const collectionCount = campaign.player.length;
+  const wagerCount = session?.playerWager?.length || collectionCount;
+  deathState = {
+    fromTitle: Boolean(opts.fromTitle),
+    boss,
+    rule,
+    playerCard,
+    aiCard,
+    rng,
+    resolved: null,
+    take: deathTakeCount(rule, session?.aiWager?.length || 8, (session?.aiWager?.length || 8) + (session?.aiVault?.length || 0)),
+    loseTake: deathTakeCount(rule, wagerCount, collectionCount),
+  };
+  els.claim?.classList.add('hidden');
+  els.title.classList.add('hidden');
+  els.deathLede.textContent =
+    `Each side pulls one card at random. Loser pays Death stakes (${deathState.loseTake} if you fall, ${deathState.take} if ${boss.name} falls) — harsher than ${rule}.`;
+  els.deathDuel.innerHTML = `<div class="death-backs">${renderCardBack('dm-p', { owner: 'none' })}${renderCardBack('dm-a', { owner: 'none' })}</div>`;
+  els.deathNote.textContent = 'Pull to reveal the clash.';
+  els.deathGo.classList.remove('hidden');
+  els.deathDone.classList.add('hidden');
+  els.death.classList.remove('hidden');
+}
+
+function newUidSafe() {
+  return `d-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function runDeathMatch() {
+  if (!deathState || deathState.resolved) return;
+  const result = resolveShowdown(deathState.playerCard, deathState.aiCard, deathState.rng);
+  deathState.resolved = result;
+  const p = deathState.playerCard;
+  const a = deathState.aiCard;
+  els.deathDuel.innerHTML = `
+    <div class="death-faces">
+      ${renderCard({ ...p, owner: 'player', instanceId: 'dmp' }, { surface: 'dmp' })}
+      <span class="death-vs">vs</span>
+      ${renderCard({ ...a, owner: 'ai', instanceId: 'dma' }, { surface: 'dma' })}
+    </div>`;
+  if (result.winner === 'player') {
+    els.deathNote.textContent = `You seize the Death Match. ${deathState.boss.name} pays ${deathState.take} cards.`;
+    sfx('win');
+  } else if (result.winner === 'ai') {
+    els.deathNote.textContent = `${deathState.boss.name} seizes it. You pay ${deathState.loseTake} cards.`;
+    sfx('lose');
+  } else {
+    els.deathNote.textContent = 'The pull ties. Albums stay.';
+  }
+  els.deathGo.classList.add('hidden');
+  els.deathDone.classList.remove('hidden');
+}
+
+function finishDeathMatch() {
+  if (!deathState?.resolved) {
+    els.death.classList.add('hidden');
+    openTitle();
+    return;
+  }
+  const { winner } = deathState.resolved;
+  const boss = deathState.boss;
+  if (winner === 'player') {
+    const pool = preferUltimates(
+      [...(session?.aiWager || []), ...(session?.aiVault || [])],
+      boss.ultimates,
+    );
+    const claimed = autoPickHighest(pool.length ? pool : [deathState.aiCard], deathState.take);
+    campaign = applyWin(campaign, claimed, boss);
+  } else if (winner === 'ai') {
+    const pool = session?.playerWager?.length ? session.playerWager : campaign.player.map(hydrateOwned);
+    const taken = autoPickHighest(pool, deathState.loseTake);
+    campaign = applyLoss(campaign, taken.map((c) => c.uid));
+  }
+  persist();
+  els.death.classList.add('hidden');
+  openTitle();
 }
 
 els.playerRail.addEventListener('click', (event) => {
@@ -276,8 +609,14 @@ els.board.addEventListener('click', (event) => {
 });
 
 els.start.addEventListener('click', startMatch);
-els.newBtn.addEventListener('click', startMatch);
-els.again.addEventListener('click', startMatch);
+els.newBtn.addEventListener('click', () => {
+  if (match?.phase === 'ended') openClaim();
+  else startMatch();
+});
+els.again.addEventListener('click', () => {
+  if (match?.phase === 'ended') openClaim();
+  else startMatch();
+});
 els.helpBtn.addEventListener('click', () => els.help.classList.remove('hidden'));
 els.titleHelp.addEventListener('click', () => els.help.classList.remove('hidden'));
 els.closeHelp.addEventListener('click', () => els.help.classList.add('hidden'));
@@ -285,8 +624,50 @@ els.help.addEventListener('click', (event) => {
   if (event.target === els.help) els.help.classList.add('hidden');
 });
 
+els.tradeRow?.addEventListener('click', (event) => {
+  const btn = event.target.closest('[data-id]');
+  if (!btn) return;
+  campaign.trade = btn.dataset.id;
+  persist();
+});
+
+els.rivalRow?.addEventListener('click', (event) => {
+  const btn = event.target.closest('[data-id]');
+  if (!btn) return;
+  campaign.rival = btn.dataset.id;
+  persist();
+});
+
+els.collectionLine?.addEventListener('click', (event) => {
+  if (event.target.id !== 'rebuild-album') return;
+  campaign = resetCampaign(campaign);
+  persist();
+});
+
+els.claimGrid?.addEventListener('click', (event) => {
+  if (!claimState || claimState.locked) return;
+  const pick = event.target.closest('.claim-pick');
+  if (!pick) return;
+  const uid = pick.dataset.uid;
+  const set = new Set(claimState.selected);
+  if (set.has(uid)) set.delete(uid);
+  else {
+    if (set.size >= claimState.need) return;
+    set.add(uid);
+  }
+  claimState.selected = [...set];
+  renderClaimGrid();
+});
+
+els.claimConfirm?.addEventListener('click', confirmClaim);
+els.deathOptin?.addEventListener('click', () => openDeathMatch({ fromTitle: false }));
+els.deathGo?.addEventListener('click', runDeathMatch);
+els.deathDone?.addEventListener('click', finishDeathMatch);
+
 if (els.titleDeck) {
   els.titleDeck.innerHTML = [0, 1, 2]
     .map((i) => renderCardBack(`title-${i}`, { owner: 'none' }))
     .join('');
 }
+
+renderSetup();

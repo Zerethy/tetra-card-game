@@ -15,6 +15,15 @@ import {
 import { DIR, rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf, TYPE_BEATS } from './cards.js';
 import { chooseAiMove } from './ai.js';
 import { renderCard, renderCardBack, renderElementWheel } from './ui.js';
+import {
+  BOSSES,
+  tradeTakeCount,
+  deathTakeCount,
+  preferUltimates,
+  resolveShowdown,
+  applyWin,
+  emptyCampaign,
+} from './campaign.js';
 
 function card(partial) {
   return {
@@ -345,3 +354,77 @@ test('elemental wheel HUD lists every element and the type cycle', () => {
   assert.match(html, /class="type-pip">P</);
   assert.match(html, /class="type-pip">M</);
 });
+
+test('trade rules take one, three, or all of the wager', () => {
+  assert.equal(tradeTakeCount('one', 8), 1);
+  assert.equal(tradeTakeCount('three', 8), 3);
+  assert.equal(tradeTakeCount('three', 2), 2);
+  assert.equal(tradeTakeCount('all', 8), 8);
+  assert.equal(tradeTakeCount('diff', 8, 2), 2);
+  assert.equal(tradeTakeCount('one', 0), 0);
+});
+
+test('Death Match stakes two more than the table trade', () => {
+  assert.equal(deathTakeCount('one', 8, 12), 3);
+  assert.equal(deathTakeCount('three', 8, 12), 5);
+  assert.equal(deathTakeCount('all', 8, 12), 10);
+  assert.equal(deathTakeCount('all', 8, 8), 8);
+});
+
+test('named bosses each hold three unique high-tier ultimates', () => {
+  const bosses = BOSSES.filter((b) => b.ultimates.length);
+  assert.ok(bosses.length >= 3);
+  const ids = [];
+  for (const boss of bosses) {
+    assert.equal(boss.ultimates.length, 3, boss.id);
+    assert.equal(new Set(boss.ultimates).size, 3, boss.id);
+    for (const id of boss.ultimates) {
+      const template = ROSTER.find((c) => c.id === id);
+      assert.ok(template, id);
+      assert.ok(template.level >= 6, id);
+      ids.push(id);
+    }
+  }
+  assert.equal(new Set(ids).size, ids.length);
+});
+
+test('createMatch can wager custom decks and skip empty hands', () => {
+  const match = createMatch({
+    playerTemplates: [ROSTER[0]],
+    aiTemplates: [ROSTER[1], ROSTER[2]],
+    tradeRule: 'all',
+    rivalId: 'cindervow',
+  });
+  assert.equal(match.player.hand.length, 1);
+  assert.equal(match.ai.hand.length, 2);
+  assert.equal(match.player.deck.length, 0);
+  assert.equal(match.tradeRule, 'all');
+  assert.equal(match.rivalId, 'cindervow');
+});
+
+test('preferUltimates floats a boss signature first', () => {
+  const sorted = preferUltimates(
+    [
+      { id: 'ember-drake', level: 1, attack: 5, pdef: 4, mdef: 3 },
+      { id: 'hellforge', level: 10, attack: 10, pdef: 8, mdef: 9 },
+    ],
+    ['hellforge'],
+  );
+  assert.equal(sorted[0].id, 'hellforge');
+});
+
+test('winning a claim adds cards and tracks ultimates', () => {
+  const campaign = { ...emptyCampaign(), player: [], claimedUltimates: [] };
+  const next = applyWin(campaign, [{ id: 'hellforge', name: 'Hellforge Tyrant' }], BOSSES.find((b) => b.id === 'cindervow'));
+  assert.equal(next.player.length, 1);
+  assert.equal(next.player[0].id, 'hellforge');
+  assert.ok(next.claimedUltimates.includes('hellforge'));
+});
+
+test('Death Match showdown always names a winner or a draw', () => {
+  const rng = mulberry32(7);
+  const result = resolveShowdown(ROSTER[0], ROSTER[1], rng);
+  assert.ok(['player', 'ai', 'draw'].includes(result.winner));
+  assert.ok(result.rounds.length >= 1);
+});
+
