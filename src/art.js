@@ -16,16 +16,29 @@ function rg(uid, id, cx, cy, r, stops) {
 
 function filters(uid) {
   return `
-    <radialGradient id="${uid}-vig" cx="50%" cy="38%" r="72%">
-      <stop offset="40%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#050208" stop-opacity=".62"/>
+    <radialGradient id="${uid}-vig" cx="50%" cy="34%" r="76%">
+      <stop offset="22%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#050208" stop-opacity=".72"/>
+    </radialGradient>
+    <radialGradient id="${uid}-key" cx="38%" cy="18%" r="62%">
+      <stop offset="0%" stop-color="#fff6d4" stop-opacity=".42"/>
+      <stop offset="42%" stop-color="#ffd090" stop-opacity=".1"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
     <filter id="${uid}-bloom" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feGaussianBlur stdDeviation="3.8" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="${uid}-soft" x="-15%" y="-15%" width="130%" height="130%">
-      <feGaussianBlur stdDeviation="0.7"/>
+    <filter id="${uid}-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.1"/>
+    </filter>
+    <filter id="${uid}-grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="4" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.24  0 0 0 0 0.18  0 0 0 0 0.1  0 0 0 0.55 0"/>
+    </filter>
+    <filter id="${uid}-blotch">
+      <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.38  0 0 0 0 0.18  0 0 0 0.28 0"/>
     </filter>`;
 }
 
@@ -33,6 +46,9 @@ function wrap(uid, defs, body) {
   return `<svg class="creature" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>${defs}${filters(uid)}</defs>
     ${body}
+    <rect width="200" height="280" filter="url(#${uid}-blotch)" opacity=".5" style="mix-blend-mode:overlay" pointer-events="none"/>
+    <rect width="200" height="280" filter="url(#${uid}-grain)" opacity=".55" style="mix-blend-mode:soft-light" pointer-events="none"/>
+    <rect width="200" height="280" fill="url(#${uid}-key)" pointer-events="none"/>
     <rect width="200" height="280" fill="url(#${uid}-vig)" pointer-events="none"/>
   </svg>`;
 }
@@ -44,7 +60,8 @@ function motes(color, pts) {
 }
 
 function sky(uid, id = 'sky') {
-  return `<rect width="200" height="280" fill="url(#${uid}-${id})"/>`;
+  return `<rect width="200" height="280" fill="url(#${uid}-${id})"/>
+    <ellipse cx="94" cy="76" rx="92" ry="68" fill="#fff4d0" opacity=".16" filter="url(#${uid}-soft)"/>`;
 }
 
 const ART = {
@@ -163,9 +180,13 @@ const ART = {
        <path d="M32 272 L42 146 L100 118 L158 146 L168 272 Z" fill="url(#${uid}-cape)"/>
        <path d="M70 180 Q100 210 130 180" fill="none" stroke="#fff6c8" stroke-width="4" opacity=".35"/>
        <rect x="76" y="126" width="48" height="88" rx="8" fill="url(#${uid}-arm)"/>
+       <path d="M80 142 H120 M80 162 H120 M86 180 H114" stroke="#fff6d8" stroke-width="1.6" opacity=".4"/>
        <path d="M70 84 L100 40 L130 84 L122 102 L100 74 L78 102 Z" fill="url(#${uid}-arm)"/>
        <rect x="82" y="84" width="36" height="40" rx="8" fill="#e8d49a"/>
        <rect x="90" y="98" width="20" height="11" rx="2" fill="#3a2a12" opacity=".4"/>
+       <circle cx="92" cy="104" r="2.4" fill="#2a1c0c"/>
+       <circle cx="108" cy="104" r="2.4" fill="#2a1c0c"/>
+       <circle cx="92" cy="103.2" r="0.9" fill="#fff6c8"/>
        <circle cx="100" cy="90" r="5" fill="#ffe27a" filter="url(#${uid}-bloom)"/>
        <path d="M84 88 H116" stroke="#fff8d8" stroke-width="2" opacity=".6"/>
        <circle cx="48" cy="168" r="24" fill="url(#${uid}-arm)"/>

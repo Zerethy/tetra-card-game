@@ -33,23 +33,29 @@ export function renderCard(card, options = {}) {
 
   return `<article class="tm-card owner-${owner} rarity-${rarity} frame-${frame}${selected}${captured}${placed}" data-instance="${card.instanceId}" data-id="${card.id}" data-rarity="${rarity}">
     <div class="tm-bevel">
-      <header class="tm-titlebar">
-        <h3 class="tm-card-name">${escapeText(card.name)}</h3>
-        ${el}
-      </header>
-      <div class="tm-portrait">
-        <div class="tm-art">${creatureSVG(card.art, uid)}</div>
-        <div class="tm-stats" aria-label="Attack ${atk}, type ${card.type}, physical ${pdef}, magical ${mdef}">
-          <span class="atk">${atk}</span>
-          <span class="mid"><span class="typ">${card.type}</span><span class="pd">${pdef}</span></span>
-          <span class="md">${mdef}</span>
+      <div class="tm-gilt">
+        <div class="tm-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <header class="tm-titlebar">
+          <h3 class="tm-card-name">${escapeText(card.name)}</h3>
+          <div class="tm-cost">${el}</div>
+        </header>
+        <div class="tm-portrait">
+          <div class="tm-art">${creatureSVG(card.art, uid)}</div>
+          <div class="tm-stats" aria-label="Attack ${atk}, type ${card.type}, physical ${pdef}, magical ${mdef}">
+            <span class="atk">${atk}</span>
+            <span class="mid"><span class="typ">${card.type}</span><span class="pd">${pdef}</span></span>
+            <span class="md">${mdef}</span>
+          </div>
+          <div class="tm-sheen" aria-hidden="true"></div>
         </div>
-        <div class="tm-sheen" aria-hidden="true"></div>
-      </div>
-      <p class="tm-typeline">${escapeText(lore.kind)} · ${typeWord(card.type)}</p>
-      <div class="tm-textbox">
-        <p class="tm-flavor">${escapeText(lore.flavor)}</p>
-        <p class="tm-footer-stats"><span>${atk}${card.type}</span><span>${pdef}/${mdef}</span></p>
+        <p class="tm-typeline">${escapeText(lore.kind)} · ${typeWord(card.type)}</p>
+        <div class="tm-textbox">
+          <p class="tm-flavor">${escapeText(lore.flavor)}</p>
+          <div class="tm-ptbox" title="Attack ${atk} ${card.type} · P.Def ${pdef} · M.Def ${mdef}">
+            <span class="pt-atk">${atk}<small>${card.type}</small></span>
+            <span class="pt-def">${pdef}/${mdef}</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="tm-arrows">${arrows}</div>
@@ -59,7 +65,9 @@ export function renderCard(card, options = {}) {
 export function renderCardBack(index) {
   return `<article class="tm-card owner-ai face-down rarity-rare frame-bronze" data-back="${index}">
     <div class="tm-bevel">
-      <div class="tm-art tm-art-full">${cardBackSVG(`back-${index}`)}</div>
+      <div class="tm-gilt">
+        <div class="tm-art tm-art-full">${cardBackSVG(`back-${index}`)}</div>
+      </div>
     </div>
   </article>`;
 }

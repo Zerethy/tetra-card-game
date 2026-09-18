@@ -89,4 +89,4 @@ Inspired by the look of Tetra Master’s parchment table, blue/pink ownership, t
 
 ## Visuals
 
-Cards use a tall premium TCG layout: color-coded beveled frames (crimson, ivory, void, azure, and others by element), a serif name bar, a large portrait window, a type line, and a parchment flavor box with real English text. Tetra Master stats stay in the portrait (Attack, P/M/X/A, physical and magical defense) with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Portraits are original painted-style SVGs. Rarity sheen is cosmetic.
+Cards use a tall premium TCG layout: thick color-coded beveled frames (crimson warrior, ivory cleric, void rogue, azure mage, and others by element), a gilt inner trim, a serif name bar with an elemental gem, a large painted portrait window, a metal type line, and a parchment flavor box with real English text. Tetra Master stats stay on the portrait (Attack, P/M/X/A, physical and magical defense) and again in a small box on the text area, with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Portraits are original painted-style SVGs. Rarity sheen is cosmetic.

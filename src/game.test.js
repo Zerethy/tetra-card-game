@@ -12,6 +12,7 @@ import {
 } from './game.js';
 import { DIR, rarityOf, frameOf, loreOf } from './cards.js';
 import { chooseAiMove } from './ai.js';
+import { renderCard } from './ui.js';
 
 function card(partial) {
   return {
@@ -219,4 +220,33 @@ test('frame color and lore are original English chrome, not battle math', () => 
   assert.match(lore.kind, /Paladin/);
   assert.match(lore.flavor, /vow/i);
   assert.equal(loreOf({ title: 'Trial' }).kind, 'Champion — Trial');
+});
+
+test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
+  const html = renderCard({
+    id: 'iron-vow',
+    name: 'Iron Vow',
+    title: 'Oath Paladin',
+    attack: 7,
+    type: 'P',
+    pdef: 9,
+    mdef: 4,
+    arrows: DIR.N | DIR.S,
+    element: 'holy',
+    art: 'paladin',
+    owner: 'player',
+    instanceId: 3,
+  });
+  assert.match(html, /Iron Vow/);
+  assert.match(html, /The vow is older than the armor/);
+  assert.match(html, /Champion — Oath Paladin/);
+  assert.match(html, /class="arr N"/);
+  assert.match(html, /class="arr S"/);
+  assert.match(html, /<span class="atk">7<\/span>/);
+  assert.match(html, /<span class="typ">P<\/span>/);
+  assert.match(html, /<span class="pd">9<\/span>/);
+  assert.match(html, /<span class="md">4<\/span>/);
+  assert.match(html, /frame-ivory/);
+  assert.match(html, /owner-player/);
+  assert.doesNotMatch(html, /[\uE000-\uF8FF]/);
 });
