@@ -21,6 +21,7 @@ import {
   deathTakeCount,
   preferUltimates,
   resolveShowdown,
+  buildBossDeck,
   mustDeathMatch,
   makeDeathSession,
   shouldOfferDeathMatch,
@@ -426,6 +427,13 @@ test('named bosses each hold three unique high-tier ultimates', () => {
       assert.ok(template.level >= 6, id);
       ids.push(id);
     }
+    const deck = buildBossDeck(boss, mulberry32(11));
+    assert.equal(deck.length, 8);
+    for (const id of boss.ultimates) {
+      assert.ok(deck.some((c) => c.id === id), `${boss.id} missing ${id}`);
+    }
+    const preferred = preferUltimates(deck, boss.ultimates).slice(0, 3);
+    assert.equal(preferred.every((c) => boss.ultimates.includes(c.id)), true);
   }
   assert.equal(new Set(ids).size, ids.length);
 });

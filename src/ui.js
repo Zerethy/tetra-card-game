@@ -144,7 +144,10 @@ export function renderUltimateStrip(boss, claimedIds = []) {
     const owned = claimed.has(id) ? ' claimed' : '';
     return `<div class="ultimate-slot${owned}" data-id="${id}">${html}<span class="ult-tag">Ultimate</span></div>`;
   });
-  return `<p class="setup-label">${escapeText(boss.name)}’s ultimates</p><div class="ultimate-row">${cards.join('')}</div>`;
+  const names = boss.ultimates.map((id) => escapeText(cardTemplate(id).name)).join(' · ');
+  return `<p class="setup-label">${escapeText(boss.name)}’s ultimates</p>
+    <div class="ultimate-row">${cards.join('')}</div>
+    <p class="ultimate-names">${names}</p>`;
 }
 
 function cardTemplate(id) {

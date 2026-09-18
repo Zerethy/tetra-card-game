@@ -1497,10 +1497,26 @@ button {
   box-shadow: 0 0 10px rgba(180, 40, 255, 0.45);
 }
 
+.ultimate-names {
+  margin: 6px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: #5a3818;
+}
+
 .ultimate-empty {
   margin: 4px 0 0;
   font-size: 14px;
   color: #5a3818;
+}
+
+.claim-ultimates {
+  margin: 0 0 10px;
+}
+
+.claim-ultimates .ultimate-slot {
+  width: 78px;
+  height: 112px;
 }
 
 .ultimate-row,

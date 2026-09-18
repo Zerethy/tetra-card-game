@@ -67,6 +67,7 @@ const els = {
   claimTitle: document.getElementById('claim-title'),
   claimLede: document.getElementById('claim-lede'),
   claimGrid: document.getElementById('claim-grid'),
+  claimUltimates: document.getElementById('claim-ultimates'),
   claimNote: document.getElementById('claim-note'),
   claimConfirm: document.getElementById('claim-confirm'),
   deathOptin: document.getElementById('death-optin'),
@@ -436,6 +437,7 @@ function openClaim() {
     els.claimGrid.innerHTML = '';
     els.claimNote.textContent = '';
     els.claimConfirm.textContent = 'Move On';
+    if (els.claimUltimates) els.claimUltimates.innerHTML = '';
     els.deathOptin.classList.add('hidden');
     els.claim.classList.remove('hidden');
     return;
@@ -457,11 +459,19 @@ function openClaim() {
     rule,
   };
   els.claimTitle.textContent = playerWon ? `Claim — ${ruleName}` : `${boss.name} claims`;
+  const hasUltimates = Boolean(boss.ultimates?.length);
   els.claimLede.textContent = playerWon
     ? rule === 'all'
-      ? `All: you take ${boss.name}’s entire wagered set.`
-      : `${ruleName}: choose ${need} card${need === 1 ? '' : 's'} from ${boss.name}. Highlighted cards are selected — click to change.`
+      ? `All: you take ${boss.name}’s entire wagered set${hasUltimates ? ', ultimates included' : ''}.`
+      : hasUltimates
+        ? `${ruleName}: ${boss.name}’s signature ultimates sit first. Choose ${need} — click to change, then Move On.`
+        : `${ruleName}: choose ${need} card${need === 1 ? '' : 's'} from ${boss.name}. Highlighted cards are selected — click to change.`
     : `You lost the ${ruleName} trade. ${boss.name} takes ${need} card${need === 1 ? '' : 's'}.`;
+  if (els.claimUltimates) {
+    els.claimUltimates.innerHTML = playerWon && hasUltimates
+      ? renderUltimateStrip(boss, campaign.claimedUltimates)
+      : '';
+  }
   renderClaimGrid();
   els.claimConfirm.textContent = 'Move On';
   const offerDeath = shouldOfferDeathMatch({

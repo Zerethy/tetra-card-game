@@ -111,11 +111,13 @@ Before **New Match**, pick a **trade rule** and a rival. Your session album (abo
 | **All** | the entire wagered set |
 | **Diff** | as many cards as the score difference |
 
-A draw moves no cards. After a win, **Move On** applies that trade and returns to the title. Bosses each keep **three ultimates** (level 6–10), shown before the match and preferred in the claim list:
+A draw moves no cards. After a win, **Move On** applies that trade and returns to the title. Named bosses each keep **three unique ultimates** (levels 6–10). Those cards are always in that rival’s wager, shown before the match and on the claim screen, and they sit first in One / Three / All picks. The album tracks which ultimates you have claimed.
 
 - **Lord Cindervow** — Cinder Behemoth, Ashen Phoenix, Hellforge Tyrant
 - **Duchess Mireveil** — Voidglass Lich, Abyssal Countess, Pearl Seraph
 - **Warden Ferric** — Iron Vow, Gilded Colossus, Runebound Golem
+
+Lady Vesper is a wandering rival with a mixed deck and no reserved ultimates.
 
 **Death Match** is never required after a clean 3×3 win. **Move On** is the primary button and claims the table trade (One / Three / All / Diff). Death Match appears on that screen only if you opted in (“Offer Death Match after duel”) or your album is already down to one card. You can also start a Death Match from the title. Each side pulls one card at random and clashes. The loser pays **two more** than the selected trade rule (One → 3, Three → 5, All → the wager plus two vault cards), capped by how many cards remain.
 
