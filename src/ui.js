@@ -129,8 +129,9 @@ export function clashFlashHtml(battle) {
   return `<div class="clash-flash">${bits.join('')}</div>`;
 }
 
-export function renderChip(id, label, selected, extra = '') {
-  return `<button type="button" class="chip${selected ? ' selected' : ''}" data-id="${escapeText(id)}">${escapeText(label)}${extra}</button>`;
+export function renderChip(id, label, selected, title = '') {
+  const tip = title ? ` title="${escapeText(title)}"` : '';
+  return `<button type="button" class="chip${selected ? ' selected' : ''}" data-id="${escapeText(id)}"${tip}>${escapeText(label)}</button>`;
 }
 
 export function renderUltimateStrip(boss, claimedIds = []) {

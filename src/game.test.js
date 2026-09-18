@@ -22,6 +22,7 @@ import {
   preferUltimates,
   resolveShowdown,
   applyWin,
+  applyLoss,
   emptyCampaign,
 } from './campaign.js';
 
@@ -419,6 +420,18 @@ test('winning a claim adds cards and tracks ultimates', () => {
   assert.equal(next.player.length, 1);
   assert.equal(next.player[0].id, 'hellforge');
   assert.ok(next.claimedUltimates.includes('hellforge'));
+});
+
+test('losing a trade removes the chosen cards from the album', () => {
+  const campaign = {
+    ...emptyCampaign(),
+    player: [
+      { uid: 'keep', id: 'ember-drake' },
+      { uid: 'gone', id: 'hellforge' },
+    ],
+  };
+  const next = applyLoss(campaign, ['gone']);
+  assert.deepEqual(next.player.map((c) => c.uid), ['keep']);
 });
 
 test('Death Match showdown always names a winner or a draw', () => {

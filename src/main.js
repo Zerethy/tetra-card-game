@@ -133,7 +133,7 @@ function persist() {
 function renderSetup() {
   if (els.tradeRow) {
     els.tradeRow.innerHTML = TRADE_RULES.map((rule) =>
-      renderChip(rule.id, rule.name, campaign.trade === rule.id),
+      renderChip(rule.id, rule.name, campaign.trade === rule.id, rule.blurb),
     ).join('');
   }
   if (els.rivalRow) {
@@ -369,6 +369,7 @@ function afterPlace(events, who) {
       sfx(match.winner === 'player' ? 'win' : match.winner === 'ai' ? 'lose' : 'place');
       render();
       busy = false;
+      window.setTimeout(openClaim, 720);
     } else if (match.phase === 'ai' && who === 'player') {
       window.setTimeout(aiTurn, 700);
     } else if (match.phase === 'player' && who === 'ai') {
@@ -424,13 +425,12 @@ function openClaim() {
   }
 
   const playerWon = match.winner === 'player';
+  const ruleName = TRADE_RULES.find((r) => r.id === rule)?.name || 'One';
   const pool = playerWon
     ? preferUltimates(session.aiWager, boss.ultimates)
     : session.playerWager.slice();
   const need = tradeTakeCount(rule, pool.length, s.player - s.ai);
-  const auto = playerWon
-    ? (rule === 'all' ? pool.slice(0, need) : [])
-    : autoPickHighest(pool, need);
+  const auto = playerWon ? pool.slice(0, need) : autoPickHighest(pool, need);
   claimState = {
     mode: playerWon ? 'win' : 'lose',
     need,
@@ -439,10 +439,12 @@ function openClaim() {
     locked: !playerWon || rule === 'all',
     rule,
   };
-  els.claimTitle.textContent = playerWon ? 'Claim the trade' : `${boss.name} claims`;
+  els.claimTitle.textContent = playerWon ? `Claim — ${ruleName}` : `${boss.name} claims`;
   els.claimLede.textContent = playerWon
-    ? `Trade ${rule}: choose ${need} card${need === 1 ? '' : 's'} from ${boss.name}. Ultimates sit first.`
-    : `You lost the ${rule} trade. ${boss.name} takes ${need} card${need === 1 ? '' : 's'}.`;
+    ? rule === 'all'
+      ? `All: you take ${boss.name}’s entire wagered set.`
+      : `${ruleName}: choose ${need} card${need === 1 ? '' : 's'} from ${boss.name}. Highlighted cards are selected — click to change.`
+    : `You lost the ${ruleName} trade. ${boss.name} takes ${need} card${need === 1 ? '' : 's'}.`;
   renderClaimGrid();
   els.claimConfirm.textContent = 'Move On';
   const lastCard = campaign.player.length <= 1 || pool.length <= 1;
