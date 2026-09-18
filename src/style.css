@@ -249,6 +249,7 @@ button {
 
 .cell {
   min-height: 0;
+  min-width: 0;
   background:
     radial-gradient(ellipse at 50% 30%, rgba(90, 58, 24, 0.35), transparent 70%),
     linear-gradient(180deg, rgba(62, 36, 14, 0.55), rgba(28, 14, 6, 0.7));
@@ -339,6 +340,8 @@ button {
   container-type: size;
   transform-origin: center center;
   transform-style: preserve-3d;
+  min-width: 0;
+  min-height: 0;
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease, filter 0.22s ease;
   background:
     linear-gradient(165deg, #3a3228 0%, #16120e 42%, #080604 100%);
@@ -464,6 +467,7 @@ button {
   position: relative;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   border-radius: 6px;
@@ -875,6 +879,13 @@ button {
   bottom: 7px;
   left: 7px;
   transform: rotate(-135deg);
+}
+
+.cell .tm-card {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .player-rail .tm-card {
