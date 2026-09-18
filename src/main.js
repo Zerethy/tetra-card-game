@@ -210,7 +210,7 @@ function afterPlace(events, who) {
       render();
       busy = false;
     } else if (match.phase === 'ai' && who === 'player') {
-      window.setTimeout(aiTurn, 520);
+      window.setTimeout(aiTurn, 700);
     } else {
       busy = false;
       render();

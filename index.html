@@ -33,14 +33,16 @@
 
       <main class="playfield">
         <div class="score score-ai" id="score-ai">5</div>
-        <div class="board" id="board" aria-label="Ninefold board"></div>
+        <div class="board-stage">
+          <div class="board" id="board" aria-label="Ninefold board"></div>
+          <div class="result-layer hidden" id="result-layer">
+            <p class="result-banner" id="result-banner">
+              <span class="you">You</span> <span class="win">Win!</span>
+            </p>
+          </div>
+        </div>
         <div class="score score-player" id="score-player">5</div>
         <div class="side-cards" id="side-cards"></div>
-        <div class="result-layer hidden" id="result-layer">
-          <p class="result-banner" id="result-banner">
-            <span class="you">You</span> <span class="win">Win!</span>
-          </p>
-        </div>
       </main>
 
       <section class="player-rail" id="player-rail" aria-label="Your hand"></section>
