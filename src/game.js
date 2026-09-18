@@ -1,4 +1,4 @@
-import { DIRECTIONS, ELEMENT_BEATS, ROSTER, hexDigit, tierOf } from './cards.js';
+import { DIRECTIONS, ELEMENT_BEATS, TYPE_BEATS, ROSTER, hexDigit, tierOf } from './cards.js';
 
 export const DECK_SIZE = 8;
 const HAND_SIZE = 5;
@@ -173,9 +173,20 @@ export function elementModifier(attacker, defender) {
   return 0;
 }
 
+/** +1 printed Attack when the attacker’s type beats the defender’s. */
+export function typeModifier(attacker, defender) {
+  const a = attacker?.type;
+  const d = defender?.type;
+  if (!a || !d || a === d) return 0;
+  if (TYPE_BEATS[a] === d) return 1;
+  if (TYPE_BEATS[d] === a) return -1;
+  return 0;
+}
+
 export function resolveBattle(attacker, defender, rng) {
-  const mod = elementModifier(attacker, defender);
-  const atkStat = Math.max(0, Math.min(15, attacker.attack + mod));
+  const elementMod = elementModifier(attacker, defender);
+  const typeMod = typeModifier(attacker, defender);
+  const atkStat = Math.max(0, Math.min(15, attacker.attack + elementMod + typeMod));
   const defInfo = defenderStat(attacker, defender);
   const atkRoll = combatRoll(atkStat, rng);
   const defRoll = combatRoll(defInfo.stat, rng);
@@ -187,7 +198,12 @@ export function resolveBattle(attacker, defender, rng) {
     atkStat,
     defStat: defInfo.stat,
     defLabel: defInfo.label,
-    elementMod: mod,
+    elementMod,
+    typeMod,
+    attackerType: attacker.type,
+    defenderType: defender.type,
+    attackerElement: attacker.element || null,
+    defenderElement: defender.element || null,
     summary:
       `${attacker.name} ${hexDigit(atkStat)}${attacker.type} rolled ${atkRoll.remainder}` +
       ` vs ${defender.name} ${defInfo.label} ${hexDigit(defInfo.stat)} rolled ${defRoll.remainder}`,

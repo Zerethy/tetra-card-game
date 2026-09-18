@@ -29,6 +29,8 @@
         <button type="button" id="new-btn" class="text-btn">New Match</button>
       </header>
 
+      <aside class="hud-wheel hidden" id="hud-wheel" aria-label="Elemental wheel and type cycle"></aside>
+
       <p class="status" id="status">Draw five champions. Capture the board.</p>
 
       <section class="ai-rail" id="ai-rail" aria-label="Opponent hand"></section>
@@ -83,9 +85,9 @@
         </ol>
         <p class="help-types">
           Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). Each starter deck mixes mostly 1–5s with a warlord, a relic, and one sovereign.
+          Battle types cycle <strong>A ▸ X ▸ P ▸ M ▸ A</strong> (+1 Attack). Elements follow the three wheels on the plaque (+2 Attack).
           <strong>P</strong> Physical vs P.Def · <strong>M</strong> Magical vs M.Def ·
           <strong>X</strong> Flexible vs lower defense · <strong>A</strong> Assault vs the defender’s lowest stat.
-          Elements add a small advantage on the elemental wheel.
         </p>
         <button type="button" id="close-help" class="seal-btn">Close</button>
       </div>

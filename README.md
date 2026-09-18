@@ -85,14 +85,32 @@ Which defense is used depends on the attacker’s battle type:
 
 This is a Tetra Master–style comparison: higher printed stats are favored, but a clash is never a guaranteed smash.
 
+### Battle-type cycle
+
+Types also play a rock-paper-scissors cycle. Same type, or opposites across the square (**A** vs **P**, **X** vs **M**), grant no bonus.
+
+**A ▸ X ▸ P ▸ M ▸ A**
+
+- **A (Assault)** beats **X (Flexible)**
+- **X (Flexible)** beats **P (Physical)**
+- **P (Physical)** beats **M (Magical)**
+- **M (Magical)** beats **A (Assault)**
+
+When the attacker’s type beats the defender’s, the attacker gets **+1** printed Attack before the band roll. If the defender’s type beats the attacker’s, **−1**. A gold chip flashes on the clash (`A ▸ X +1`).
+
 ### Elements
 
-Optional glyphs (Fire, Ice, Water, Wind, Earth, Thunder, Holy, Dark, Poison) apply a small modifier to the attacker’s printed Attack before the band roll:
+Every card with an element sits on one of three clockwise wheels. The attacker’s element applies a modifier to printed Attack before the band roll:
 
 - **+2** if the attacker’s element beats the defender’s
 - **−2** if the defender’s element beats the attacker’s
+- **0** if either card has no element, or they are on different wheels
 
-Wheels: Fire > Ice > Water > Fire · Wind > Earth > Thunder > Wind · Holy > Dark > Poison > Holy.
+Wheels (clockwise beats), also shown on the parchment plaque in the top-left of the table:
+
+- Fire ▸ Ice ▸ Water ▸ Fire
+- Wind ▸ Earth ▸ Thunder ▸ Wind
+- Holy ▸ Dark ▸ Poison ▸ Holy
 
 ## AI
 

@@ -23,7 +23,7 @@ export const DIRECTIONS = [
 
 export const ELEMENTS = ['fire', 'ice', 'water', 'wind', 'earth', 'thunder', 'holy', 'dark', 'poison'];
 
-/** Attacker element beats this defender element. */
+/** Attacker element beats this defender element. Three clockwise triangles. */
 export const ELEMENT_BEATS = {
   fire: 'ice',
   ice: 'water',
@@ -35,6 +35,21 @@ export const ELEMENT_BEATS = {
   dark: 'poison',
   poison: 'holy',
 };
+
+/** HUD rings: each node beats the next, last beats first. */
+export const ELEMENT_RINGS = [
+  { id: 'primal', nodes: ['fire', 'ice', 'water'] },
+  { id: 'wild', nodes: ['wind', 'earth', 'thunder'] },
+  { id: 'aether', nodes: ['holy', 'dark', 'poison'] },
+];
+
+/**
+ * Battle-type cycle: Assault beats Flexible, Flexible beats Physical,
+ * Physical beats Magical, Magical beats Assault. Same type and opposites
+ * (A vs P, X vs M) grant no bonus.
+ */
+export const TYPE_CYCLE = ['A', 'X', 'P', 'M'];
+export const TYPE_BEATS = { A: 'X', X: 'P', P: 'M', M: 'A' };
 
 const A = DIR;
 

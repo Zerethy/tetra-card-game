@@ -123,9 +123,198 @@ button {
 .playfield,
 .player-rail,
 .hint,
-.combat-log {
+.combat-log,
+.hud-wheel {
   position: relative;
   z-index: 1;
+}
+
+.hud-wheel {
+  position: fixed;
+  top: 56px;
+  left: 10px;
+  z-index: 5;
+  width: min(196px, 22vw);
+  padding: 8px 8px 7px;
+  pointer-events: none;
+  border-radius: 12px;
+  border: 2px solid #5a3810;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(255, 236, 190, 0.55), transparent 52%),
+    linear-gradient(180deg, #ead4a0, #c4a060 78%, #a07838);
+  box-shadow:
+    inset 0 0 0 1px #ead7a4,
+    0 8px 18px rgba(0, 0, 0, 0.28);
+  color: #2a1a0c;
+}
+
+.hud-wheel.hidden {
+  display: none;
+}
+
+.hud-wheel-title {
+  margin: 0 0 4px;
+  font-family: Cinzel, serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #4a3010;
+}
+
+.wheel-rings {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.wheel-ring {
+  position: relative;
+  flex: 1;
+  height: 64px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 248, 220, 0.35), transparent 58%),
+    rgba(90, 50, 16, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(90, 50, 16, 0.28);
+}
+
+.wheel-ring::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(90, 50, 16, 0.35);
+}
+
+.wheel-node {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff8e8, #3a2410 78%);
+  border: 1px solid #5a3810;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.wheel-node svg {
+  width: 72%;
+  height: 72%;
+  display: block;
+}
+
+.wheel-node:nth-child(1) {
+  left: 50%;
+  top: 2px;
+  transform: translateX(-50%);
+}
+
+.wheel-node:nth-child(2) {
+  right: 3px;
+  bottom: 6px;
+}
+
+.wheel-node:nth-child(3) {
+  left: 3px;
+  bottom: 6px;
+}
+
+.hud-wheel-note {
+  margin: 3px 0 0;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: #5a3818;
+}
+
+.hud-type-cycle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin: 6px 0 0;
+}
+
+.hud-type-cycle .type-pip {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  font-family: Cinzel, serif;
+  font-weight: 800;
+  font-size: 10px;
+  color: #f4ead4;
+  background: linear-gradient(180deg, #3a2c1c, #1a120c);
+  border: 1px solid #8a6418;
+}
+
+.hud-type-cycle i {
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid #6a4818;
+}
+
+.clash-flash {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 12;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  pointer-events: none;
+  animation: clashPop 0.95s ease forwards;
+}
+
+.clash-flash span {
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-family: Cinzel, serif;
+  font-weight: 800;
+  font-size: clamp(8px, 1.5cqw, 11px);
+  letter-spacing: 0.04em;
+  color: #2a1a0c;
+  background: linear-gradient(180deg, #ffe27a, #d4a030);
+  border: 1px solid #5a3810;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+.clash-flash .cf-el {
+  background: linear-gradient(180deg, #7ad0ff, #2a78c8);
+  color: #f4fbff;
+}
+
+.clash-flash .dim {
+  background: linear-gradient(180deg, #c8b090, #8a6840);
+  color: #2a1a0c;
+}
+
+@keyframes clashPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  22% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -62%) scale(1);
+  }
 }
 
 .top-bar {
@@ -248,6 +437,7 @@ button {
 }
 
 .cell {
+  position: relative;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -1236,6 +1426,33 @@ button {
   .side-cards {
     display: none;
   }
+
+  .hud-wheel {
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    width: 132px;
+    padding: 5px;
+  }
+
+  .wheel-ring {
+    height: 44px;
+  }
+
+  .wheel-node {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hud-wheel-title,
+  .hud-type-cycle .type-pip {
+    font-size: 8px;
+  }
+
+  .hud-type-cycle .type-pip {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1243,7 +1460,8 @@ button {
   .tm-card.just-placed,
   .tm-card.just-captured,
   .result-banner,
-  .cell.open {
+  .cell.open,
+  .clash-flash {
     animation: none !important;
   }
 }

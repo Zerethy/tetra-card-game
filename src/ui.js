@@ -1,4 +1,4 @@
-import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord, levelOf } from './cards.js';
+import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord, levelOf, ELEMENT_RINGS, TYPE_CYCLE } from './cards.js';
 import { creatureSVG, cardBackSVG, elementGlyph } from './art.js';
 
 const ARROW_SVG = `<svg class="arr-svg" viewBox="0 0 24 20" aria-hidden="true"><path d="M12 1.6 L22.8 18.6 H1.2 Z"/></svg>`;
@@ -79,4 +79,49 @@ export function renderCardBack(index) {
 
 export function typeLabel(type) {
   return typeWord(type);
+}
+
+const ELEMENT_TITLE = {
+  fire: 'Fire',
+  ice: 'Ice',
+  water: 'Water',
+  wind: 'Wind',
+  earth: 'Earth',
+  thunder: 'Thunder',
+  holy: 'Holy',
+  dark: 'Dark',
+  poison: 'Poison',
+};
+
+export function renderElementWheel() {
+  const rings = ELEMENT_RINGS.map(
+    (ring) => `<div class="wheel-ring" data-ring="${ring.id}">
+      ${ring.nodes
+        .map((el, i) => {
+          const beats = ring.nodes[(i + 1) % ring.nodes.length];
+          return `<span class="wheel-node el-${el}" title="${ELEMENT_TITLE[el]} beats ${ELEMENT_TITLE[beats]}">${elementGlyph(el)}</span>`;
+        })
+        .join('')}
+      <span class="wheel-arrows" aria-hidden="true"></span>
+    </div>`,
+  ).join('');
+  const types = TYPE_CYCLE.map((t) => `<span class="type-pip">${t}</span>`).join('<i></i>');
+  return `<p class="hud-wheel-title">Elemental Wheel</p>
+    <div class="wheel-rings">${rings}</div>
+    <p class="hud-wheel-note">Clockwise beats · +2 Attack</p>
+    <p class="hud-type-cycle" title="Assault beats Flexible, Flexible beats Physical, Physical beats Magical, Magical beats Assault">${types}<i></i><span class="type-pip">${TYPE_CYCLE[0]}</span></p>
+    <p class="hud-wheel-note">Type cycle · +1 Attack</p>`;
+}
+
+export function clashFlashHtml(battle) {
+  const bits = [];
+  if (battle.typeMod > 0) bits.push(`<span class="cf-type">${battle.attackerType} ▸ ${battle.defenderType} +1</span>`);
+  else if (battle.typeMod < 0) bits.push(`<span class="cf-type dim">${battle.attackerType} vs ${battle.defenderType} −1</span>`);
+  if (battle.elementMod > 0) {
+    bits.push(`<span class="cf-el">${ELEMENT_TITLE[battle.attackerElement] || 'Element'} +2</span>`);
+  } else if (battle.elementMod < 0) {
+    bits.push(`<span class="cf-el dim">${ELEMENT_TITLE[battle.defenderElement] || 'Element'} −2</span>`);
+  }
+  if (!bits.length) return '';
+  return `<div class="clash-flash">${bits.join('')}</div>`;
 }

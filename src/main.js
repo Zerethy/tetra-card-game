@@ -1,6 +1,6 @@
 import { createMatch, placeCard, scores } from './game.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderCardBack } from './ui.js';
+import { renderCard, renderCardBack, renderElementWheel, clashFlashHtml } from './ui.js';
 
 const els = {
   title: document.getElementById('title-overlay'),
@@ -23,6 +23,7 @@ const els = {
   pip: document.getElementById('turn-pip'),
   side: document.getElementById('side-cards'),
   again: document.getElementById('again-btn'),
+  wheel: document.getElementById('hud-wheel'),
 };
 
 let match = null;
@@ -30,6 +31,7 @@ let selected = null;
 let busy = false;
 let lastPlaced = null;
 let captureCells = new Set();
+let clashFlashes = new Map();
 let audioCtx = null;
 
 function audio() {
@@ -75,8 +77,14 @@ function startMatch() {
   busy = false;
   lastPlaced = null;
   captureCells = new Set();
+  clashFlashes = new Map();
   els.title.classList.add('hidden');
   els.result.classList.add('hidden');
+  els.wheel.classList.remove('hidden');
+  if (!els.wheel.dataset.ready) {
+    els.wheel.innerHTML = renderElementWheel();
+    els.wheel.dataset.ready = '1';
+  }
   els.log.textContent = 'Hands drawn. Five champions each.';
   render();
 }
@@ -99,6 +107,7 @@ function render() {
       const classes = ['cell', open ? 'open' : '', card ? 'filled' : '', !open && !card ? 'blocked' : '']
         .filter(Boolean)
         .join(' ');
+      const flash = clashFlashes.get(i) || '';
       const body = card
         ? renderCard(card, {
             surface: `b${i}`,
@@ -106,7 +115,7 @@ function render() {
             placed: lastPlaced === i,
           })
         : '';
-      return `<div class="${classes}" data-cell="${i}">${body}</div>`;
+      return `<div class="${classes}" data-cell="${i}">${body}${flash}</div>`;
     })
     .join('');
 
@@ -176,9 +185,12 @@ function describeEvents(events) {
   const bits = [];
   for (const ev of events) {
     if (ev.type === 'battle') {
+      const extras = [];
+      if (ev.typeMod) extras.push(`type ${ev.typeMod > 0 ? '+' : ''}${ev.typeMod}`);
+      if (ev.elementMod) extras.push(`element ${ev.elementMod > 0 ? '+' : ''}${ev.elementMod}`);
       bits.push(
         `${ev.attackerName} rolled ${ev.atkRoll.remainder} vs ${ev.defenderName} ${ev.defLabel} ${ev.defRoll.remainder}` +
-          (ev.elementMod ? ` (element ${ev.elementMod > 0 ? '+' : ''}${ev.elementMod})` : '') +
+          (extras.length ? ` (${extras.join(', ')})` : '') +
           (ev.attackerWins ? ' — captured!' : ' — counter-seize!'),
       );
     } else if (ev.type === 'capture' && ev.kind === 'arrow') {
@@ -197,6 +209,12 @@ function afterPlace(events, who) {
     events.filter((e) => e.type === 'capture' || e.type === 'combo' || e.type === 'counter').map((e) => e.cell),
   );
   lastPlaced = events.find((e) => e.type === 'place')?.cell ?? null;
+  clashFlashes = new Map();
+  for (const ev of events) {
+    if (ev.type !== 'battle') continue;
+    const html = clashFlashHtml(ev);
+    if (html) clashFlashes.set(ev.defenderCell, html);
+  }
   els.log.textContent = describeEvents(events) || `${who === 'player' ? 'You' : 'Lady Vesper'} placed a card.`;
   if (events.some((e) => e.type === 'counter')) sfx('counter');
   else if (events.some((e) => e.type === 'capture' || e.type === 'combo')) sfx('capture');
@@ -205,6 +223,7 @@ function afterPlace(events, who) {
   window.setTimeout(() => {
     captureCells = new Set();
     lastPlaced = null;
+    clashFlashes = new Map();
     if (match.phase === 'ended') {
       sfx(match.winner === 'player' ? 'win' : match.winner === 'ai' ? 'lose' : 'place');
       render();

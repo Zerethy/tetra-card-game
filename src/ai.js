@@ -1,8 +1,7 @@
-import { emptyCells, placeCard, scores, arrowTargets, hasOpposingArrow, defenderStat, elementModifier, mulberry32 } from './game.js';
+import { emptyCells, placeCard, scores, arrowTargets, hasOpposingArrow, defenderStat, elementModifier, typeModifier, mulberry32 } from './game.js';
 
 function expectedBattle(attacker, defender) {
-  const mod = elementModifier(attacker, defender);
-  const atk = attacker.attack + mod;
+  const atk = attacker.attack + elementModifier(attacker, defender) + typeModifier(attacker, defender);
   const def = defenderStat(attacker, defender).stat;
   return atk + 1 - def;
 }

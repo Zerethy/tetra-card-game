@@ -8,12 +8,13 @@ import {
   mulberry32,
   emptyCells,
   elementModifier,
+  typeModifier,
   hasOpposingArrow,
   DECK_QUOTA,
 } from './game.js';
-import { DIR, rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf } from './cards.js';
+import { DIR, rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf, TYPE_BEATS } from './cards.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard } from './ui.js';
+import { renderCard, renderElementWheel } from './ui.js';
 
 function card(partial) {
   return {
@@ -185,6 +186,34 @@ test('element wheel grants a modifier', () => {
   assert.equal(elementModifier({ element: null }, { element: 'ice' }), 0);
 });
 
+test('battle types cycle A beats X beats P beats M beats A', () => {
+  assert.equal(TYPE_BEATS.A, 'X');
+  assert.equal(TYPE_BEATS.X, 'P');
+  assert.equal(TYPE_BEATS.P, 'M');
+  assert.equal(TYPE_BEATS.M, 'A');
+  assert.equal(typeModifier({ type: 'A' }, { type: 'X' }), 1);
+  assert.equal(typeModifier({ type: 'M' }, { type: 'A' }), 1);
+  assert.equal(typeModifier({ type: 'X' }, { type: 'P' }), 1);
+  assert.equal(typeModifier({ type: 'P' }, { type: 'M' }), 1);
+  assert.equal(typeModifier({ type: 'A' }, { type: 'A' }), 0);
+  assert.equal(typeModifier({ type: 'A' }, { type: 'P' }), 0);
+  assert.equal(typeModifier({ type: 'X' }, { type: 'M' }), 0);
+  const boosted = resolveBattle(
+    card({ attack: 5, type: 'A', element: null }),
+    card({ attack: 5, type: 'X', element: null, pdef: 5, mdef: 5 }),
+    mulberry32(3),
+  );
+  assert.equal(boosted.typeMod, 1);
+  assert.equal(boosted.atkStat, 6);
+  const even = resolveBattle(
+    card({ attack: 5, type: 'P', element: null }),
+    card({ attack: 5, type: 'P', element: null, pdef: 5, mdef: 5 }),
+    mulberry32(3),
+  );
+  assert.equal(even.typeMod, 0);
+  assert.equal(even.atkStat, 5);
+});
+
 test('assault type targets the lowest defender stat', () => {
   const battle = resolveBattle(
     card({ attack: 5, type: 'A' }),
@@ -290,4 +319,16 @@ test('player and AI starter decks share the same level mix and no cards', () => 
     const ids = [...player, ...ai].map((c) => c.id);
     assert.equal(new Set(ids).size, 16);
   }
+});
+
+test('elemental wheel HUD lists every element and the type cycle', () => {
+  const html = renderElementWheel();
+  assert.match(html, /Elemental Wheel/);
+  for (const el of ['fire', 'ice', 'water', 'wind', 'earth', 'thunder', 'holy', 'dark', 'poison']) {
+    assert.match(html, new RegExp(`el-${el}`));
+  }
+  assert.match(html, /class="type-pip">A</);
+  assert.match(html, /class="type-pip">X</);
+  assert.match(html, /class="type-pip">P</);
+  assert.match(html, /class="type-pip">M</);
 });
