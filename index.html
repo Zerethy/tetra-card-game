@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aetherbound — Parchment Card Duel</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600;800&family=Crimson+Pro:ital,wght@0,500;0,700;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="parchment" aria-hidden="true"></div>
+      <div class="ornament" aria-hidden="true"></div>
+
+      <header class="top-bar">
+        <button type="button" id="help-btn" class="text-btn">How to Play</button>
+        <div class="brand">
+          <span class="cursor-pip" id="turn-pip" title="Current turn"></span>
+          <h1>Aetherbound</h1>
+        </div>
+        <button type="button" id="new-btn" class="text-btn">New Match</button>
+      </header>
+
+      <p class="status" id="status">Draw five champions. Capture the board.</p>
+
+      <section class="ai-rail" id="ai-rail" aria-label="Opponent hand"></section>
+
+      <main class="playfield">
+        <div class="score score-ai" id="score-ai">5</div>
+        <div class="board" id="board" aria-label="Ninefold board"></div>
+        <div class="score score-player" id="score-player">5</div>
+        <div class="side-cards" id="side-cards"></div>
+        <div class="result-layer hidden" id="result-layer">
+          <p class="result-banner" id="result-banner">
+            <span class="you">You</span> <span class="win">Win!</span>
+          </p>
+        </div>
+      </main>
+
+      <section class="player-rail" id="player-rail" aria-label="Your hand"></section>
+
+      <p class="hint" id="hint"></p>
+      <p class="combat-log" id="combat-log"></p>
+      <button type="button" id="again-btn" class="seal-btn again-btn hidden">Play Again</button>
+    </div>
+
+    <div class="overlay" id="title-overlay">
+      <div class="title-card">
+        <p class="eyebrow">A parchment card duel</p>
+        <h2>Aetherbound</h2>
+        <p class="lede">
+          Draw five dark-fantasy champions, place them on the ninefold grid, and capture
+          your rival with arrows, clashes, and combos.
+        </p>
+        <div class="title-actions">
+          <button type="button" id="start-btn" class="seal-btn">New Match</button>
+          <button type="button" id="title-help-btn" class="text-btn">How to Play</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="help-overlay">
+      <div class="help-card">
+        <h2>How to Play</h2>
+        <ol>
+          <li>Each duelist shuffles a deck and <strong>draws 5 cards</strong> into a hand.</li>
+          <li>On your turn, <strong>select a card</strong>, then click an empty square on the 3×3 board.</li>
+          <li>Arrows on the card attack adjacent enemy cards (including diagonals).</li>
+          <li>No arrow pointing back: <strong>automatic capture</strong> (the card flips to your color).</li>
+          <li>Arrows clash: a <strong>battle</strong> uses Attack vs the defense your battle type names. Winner keeps the loser.</li>
+          <li>Captured cards can <strong>combo</strong>—their arrows flip nearby enemy cards without another fight.</li>
+          <li>The board fills at 9 cards. Highest total of <strong>board + remaining hand</strong> wins.</li>
+        </ol>
+        <p class="help-types">
+          <strong>P</strong> Physical vs P.Def · <strong>M</strong> Magical vs M.Def ·
+          <strong>X</strong> Flexible vs lower defense · <strong>A</strong> Assault vs the defender’s lowest stat.
+          Elements add a small advantage on the elemental wheel.
+        </p>
+        <button type="button" id="close-help" class="seal-btn">Close</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
