@@ -196,7 +196,7 @@ button {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #fff8e8, #3a2410 78%);
+  background: radial-gradient(circle at 32% 26%, #fffaf0, #e8c878 72%);
   border: 1px solid #5a3810;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
