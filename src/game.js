@@ -1,4 +1,4 @@
-import { DIRECTIONS, ELEMENT_BEATS, TYPE_BEATS, ROSTER, hexDigit, tierOf } from './cards.js';
+import { DIRECTIONS, ELEMENT_BEATS, TYPE_BEATS, ROSTER, tierOf } from './cards.js';
 
 export const DECK_SIZE = 8;
 const HAND_SIZE = 5;
@@ -192,27 +192,32 @@ export function typeModifier(attacker, defender) {
 export function resolveBattle(attacker, defender, rng) {
   const elementMod = elementModifier(attacker, defender);
   const typeMod = typeModifier(attacker, defender);
-  const atkStat = Math.max(0, Math.min(15, attacker.attack + elementMod + typeMod));
   const defInfo = defenderStat(attacker, defender);
-  const atkRoll = combatRoll(atkStat, rng);
-  const defRoll = combatRoll(defInfo.stat, rng);
-  const attackerWins = atkRoll.remainder > defRoll.remainder;
+  const rawAtk = attacker.attack | 0;
+  const rawDef = defInfo.stat | 0;
+  const modifiedAtk = Math.max(0, Math.min(15, rawAtk + elementMod + typeMod));
+  const clearGap = rawAtk !== rawDef;
+  const usedAtk = clearGap ? rawAtk : modifiedAtk;
+  const attackerWins = clearGap ? rawAtk > rawDef : modifiedAtk > rawDef;
+  const atkRoll = { actual: usedAtk, remainder: usedAtk };
+  const defRoll = { actual: rawDef, remainder: rawDef };
+  void rng;
   return {
     attackerWins,
     atkRoll,
     defRoll,
-    atkStat,
-    defStat: defInfo.stat,
+    atkStat: usedAtk,
+    defStat: rawDef,
+    rawAtk,
+    rawDef,
     defLabel: defInfo.label,
-    elementMod,
-    typeMod,
+    elementMod: clearGap ? 0 : elementMod,
+    typeMod: clearGap ? 0 : typeMod,
     attackerType: attacker.type,
     defenderType: defender.type,
     attackerElement: attacker.element || null,
     defenderElement: defender.element || null,
-    summary:
-      `${attacker.name} ${hexDigit(atkStat)}${attacker.type} rolled ${atkRoll.remainder}` +
-      ` vs ${defender.name} ${defInfo.label} ${hexDigit(defInfo.stat)} rolled ${defRoll.remainder}`,
+    summary: `${rawAtk} vs ${rawDef} — ${attackerWins ? 'capture' : 'held'}`,
   };
 }
 

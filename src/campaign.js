@@ -83,6 +83,11 @@ export function mustDeathMatch(ownedCount) {
   return (ownedCount | 0) === 1;
 }
 
+/** After a 3×3, offer Death Match only for last-card or an explicit opt-in. */
+export function shouldOfferDeathMatch({ albumCount, optedIn }) {
+  return mustDeathMatch(albumCount) || Boolean(optedIn);
+}
+
 export function makeDeathSession(campaign, rng) {
   const boss = bossById(campaign.rival);
   const playerWager = (campaign.player || []).map(hydrateOwned).filter(Boolean);
@@ -176,6 +181,7 @@ export function emptyCampaign() {
     trade: 'one',
     rival: 'vesper',
     claimedUltimates: [],
+    offerDeathMatch: false,
   };
 }
 
@@ -194,6 +200,7 @@ export function loadCampaign() {
       trade: TRADE_RULES.some((r) => r.id === parsed.trade) ? parsed.trade : 'one',
       rival: BOSSES.some((b) => b.id === parsed.rival) ? parsed.rival : 'vesper',
       claimedUltimates: Array.isArray(parsed.claimedUltimates) ? parsed.claimedUltimates : [],
+      offerDeathMatch: Boolean(parsed.offerDeathMatch),
     };
   } catch {
     return emptyCampaign();
@@ -212,6 +219,7 @@ export function resetCampaign(campaign) {
   const next = emptyCampaign();
   next.trade = campaign?.trade || 'one';
   next.rival = campaign?.rival || 'vesper';
+  next.offerDeathMatch = Boolean(campaign?.offerDeathMatch);
   return next;
 }
 

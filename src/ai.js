@@ -1,9 +1,10 @@
 import { emptyCells, placeCard, scores, arrowTargets, hasOpposingArrow, defenderStat, elementModifier, typeModifier, mulberry32 } from './game.js';
 
 function expectedBattle(attacker, defender) {
-  const atk = attacker.attack + elementModifier(attacker, defender) + typeModifier(attacker, defender);
   const def = defenderStat(attacker, defender).stat;
-  return atk + 1 - def;
+  const raw = attacker.attack - def;
+  if (raw !== 0) return raw * 6;
+  return typeModifier(attacker, defender) + elementModifier(attacker, defender);
 }
 
 function cloneForSim(state, salt) {

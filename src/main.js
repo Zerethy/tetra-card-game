@@ -24,6 +24,7 @@ import {
   deathTakeCount,
   mustDeathMatch,
   makeDeathSession,
+  shouldOfferDeathMatch,
   autoPickHighest,
   preferUltimates,
   applyWin,
@@ -61,6 +62,7 @@ const els = {
   collectionLine: document.getElementById('collection-line'),
   deathBtn: document.getElementById('death-btn'),
   deathWarn: document.getElementById('death-warn'),
+  stakesRow: document.getElementById('stakes-row'),
   claim: document.getElementById('claim-overlay'),
   claimTitle: document.getElementById('claim-title'),
   claimLede: document.getElementById('claim-lede'),
@@ -162,6 +164,14 @@ function renderSetup() {
   }
   els.deathWarn?.classList.toggle('hidden', !mustDeathMatch(n));
   els.deathBtn?.classList.toggle('hidden', n <= 1);
+  if (els.stakesRow) {
+    els.stakesRow.innerHTML = renderChip(
+      'offer-death',
+      'Offer Death Match after duel',
+      Boolean(campaign.offerDeathMatch),
+      'Optional. After a 3×3 win, Move On still claims the table trade unless you click Death Match.',
+    );
+  }
 }
 
 function openTitle() {
@@ -304,7 +314,9 @@ function render() {
   } else if (match.phase === 'ended') {
     const result = match.winner === 'player' ? 'Victory' : match.winner === 'ai' ? 'Defeat' : 'Draw';
     els.status.textContent = `${result}. Blue ${s.player} — Pink ${s.ai}.`;
-    els.hint.textContent = match.winner === 'draw' ? 'No trade on a draw. Move On to return.' : 'Collect the trade, or risk a Death Match.';
+    els.hint.textContent = match.winner === 'draw'
+      ? 'No trade on a draw. Move On to return.'
+      : 'Move On to claim the table trade.';
   }
 
   if (match.phase === 'ended') showResult();
@@ -336,9 +348,8 @@ function describeEvents(events) {
       if (ev.typeMod) extras.push(`type ${ev.typeMod > 0 ? '+' : ''}${ev.typeMod}`);
       if (ev.elementMod) extras.push(`element ${ev.elementMod > 0 ? '+' : ''}${ev.elementMod}`);
       bits.push(
-        `${ev.attackerName} rolled ${ev.atkRoll.remainder} vs ${ev.defenderName} ${ev.defLabel} ${ev.defRoll.remainder}` +
-          (extras.length ? ` (${extras.join(', ')})` : '') +
-          (ev.attackerWins ? ' — captured!' : ' — counter-seize!'),
+        `${ev.attackerName} ${ev.rawAtk ?? ev.atkStat} vs ${ev.defLabel} ${ev.rawDef ?? ev.defStat} — ${ev.attackerWins ? 'capture' : 'held'}` +
+          (extras.length ? ` (${extras.join(', ')})` : ''),
       );
     } else if (ev.type === 'capture' && ev.kind === 'arrow') {
       bits.push(`${ev.name} had no answering arrow and flipped.`);
@@ -453,9 +464,12 @@ function openClaim() {
     : `You lost the ${ruleName} trade. ${boss.name} takes ${need} card${need === 1 ? '' : 's'}.`;
   renderClaimGrid();
   els.claimConfirm.textContent = 'Move On';
-  const lastCard = campaign.player.length <= 1 || pool.length <= 1;
-  els.deathOptin.classList.toggle('hidden', false);
-  els.deathOptin.textContent = lastCard ? 'Death Match' : 'Death Match (opt in)';
+  const offerDeath = shouldOfferDeathMatch({
+    albumCount: campaign.player.length,
+    optedIn: campaign.offerDeathMatch,
+  });
+  els.deathOptin.classList.toggle('hidden', !offerDeath);
+  els.deathOptin.textContent = mustDeathMatch(campaign.player.length) ? 'Death Match' : 'Death Match (opt in)';
   els.claim.classList.remove('hidden');
 }
 
@@ -638,6 +652,13 @@ els.rivalRow?.addEventListener('click', (event) => {
   const btn = event.target.closest('[data-id]');
   if (!btn) return;
   campaign.rival = btn.dataset.id;
+  persist();
+});
+
+els.stakesRow?.addEventListener('click', (event) => {
+  const btn = event.target.closest('[data-id]');
+  if (!btn) return;
+  campaign.offerDeathMatch = !campaign.offerDeathMatch;
   persist();
 });
 

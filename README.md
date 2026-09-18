@@ -70,20 +70,9 @@ Friendly cards are never attacked by your own arrows.
 
 ## Battle comparison
 
-Displayed attack/defense digits are hexadecimal **0–F** (0–15). Each digit stands for a band of 16 hidden values (`digit × 16` through `digit × 16 + 15`). For a clash the game:
+On opposing arrows the clash is a **higher-number-wins** compare, like Triple Triad. The attacker’s printed Attack is checked against the defense the battle-type letter names (**P** → P.Def, **M** → M.Def, **X** → the lower defense, **A** → the defender’s lowest stat). **6 beats 3. A 6 cannot lose to an M3.**
 
-1. Picks a hidden value inside each relevant band.
-2. Subtracts a second roll between `0` and that hidden value.
-3. The higher remainder wins. **Defender wins ties.**
-
-Which defense is used depends on the attacker’s battle type:
-
-- **P (Physical)** — vs Physical Defense
-- **M (Magical)** — vs Magical Defense
-- **X (Flexible)** — vs the lower of the two defenses
-- **A (Assault)** — vs the defender’s lowest stat among Attack, P.Def, and M.Def
-
-This is a Tetra Master–style comparison: higher printed stats are favored, but a clash is never a guaranteed smash.
+The log shows it plainly: `6 vs 3 — capture`. Equal printed ranks can use the type cycle (+1) or elemental wheel (+2) as a **tie-break only** — those modifiers never reverse a clear number gap. Defender wins remaining ties.
 
 ### Battle-type cycle
 
@@ -91,16 +80,11 @@ Types also play a rock-paper-scissors cycle. Same type, or opposites across the 
 
 **A ▸ X ▸ P ▸ M ▸ A**
 
-- **A (Assault)** beats **X (Flexible)**
-- **X (Flexible)** beats **P (Physical)**
-- **P (Physical)** beats **M (Magical)**
-- **M (Magical)** beats **A (Assault)**
-
-When the attacker’s type beats the defender’s, the attacker gets **+1** printed Attack before the band roll. If the defender’s type beats the attacker’s, **−1**. A gold chip flashes on the clash (`A ▸ X +1`).
+When printed Attack and the named defense are **tied**, a type advantage breaks the tie (+1 Attack). If the defender’s type beats the attacker’s, −1. A gold chip flashes (`A ▸ X +1`) only when that tie-break matters.
 
 ### Elements
 
-Every card with an element sits on one of three clockwise wheels. The attacker’s element applies a modifier to printed Attack before the band roll:
+Every card with an element sits on one of three clockwise wheels. On a **tied** printed compare, the attacker’s element can break the tie:
 
 - **+2** if the attacker’s element beats the defender’s
 - **−2** if the defender’s element beats the attacker’s
@@ -133,7 +117,7 @@ A draw moves no cards. After a win, **Move On** applies that trade and returns t
 - **Duchess Mireveil** — Voidglass Lich, Abyssal Countess, Pearl Seraph
 - **Warden Ferric** — Iron Vow, Gilded Colossus, Runebound Golem
 
-**Death Match** is never required after a clean 3×3 win — **Move On** claims the table trade. It is an opt-in gamble from the title screen or the claim overlay, and it is **forced when your album is down to one card**. Each side pulls one card at random and clashes (Attack vs the named defense, same as a board clash). The loser pays **two more** than the selected trade rule (One → 3, Three → 5, All → the wager plus two vault cards), capped by how many cards remain.
+**Death Match** is never required after a clean 3×3 win. **Move On** is the primary button and claims the table trade (One / Three / All / Diff). Death Match appears on that screen only if you opted in (“Offer Death Match after duel”) or your album is already down to one card. You can also start a Death Match from the title. Each side pulls one card at random and clashes. The loser pays **two more** than the selected trade rule (One → 3, Three → 5, All → the wager plus two vault cards), capped by how many cards remain.
 
 ## Project
 

@@ -72,6 +72,8 @@
           <div class="chip-row" id="rival-row" role="group" aria-label="Rival"></div>
           <div class="boss-ultimates" id="boss-ultimates"></div>
           <p class="collection-line" id="collection-line"></p>
+          <p class="setup-label">After a duel</p>
+          <div class="chip-row" id="stakes-row" role="group" aria-label="Death Match opt-in"></div>
           <p class="death-warn hidden" id="death-warn">Your album is down to one card. Only a Death Match remains.</p>
         </div>
         <div class="title-actions">
@@ -96,10 +98,10 @@
         </ol>
         <p class="help-types">
           Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). Each starter deck mixes mostly 1–5s with a warlord, a relic, and one sovereign.
-          Battle types cycle <strong>A ▸ X ▸ P ▸ M ▸ A</strong> (+1 Attack). Elements follow the three wheels on the plaque (+2 Attack).
+          Battle types cycle <strong>A ▸ X ▸ P ▸ M ▸ A</strong> (tie-break only). Clashes are <strong>higher number wins</strong> (6 beats 3). Elements follow the three wheels on the plaque (tie-break +2).
           <strong>P</strong> Physical vs P.Def · <strong>M</strong> Magical vs M.Def ·
           <strong>X</strong> Flexible vs lower defense · <strong>A</strong> Assault vs the defender’s lowest stat.
-          Before a match, pick a <strong>trade rule</strong> (One / Three / All / Diff) and a rival. Bosses each hold three ultimates. After a win, <strong>Move On</strong> claims the trade; <strong>Death Match</strong> is optional (or forced at one card) and the loser pays more.
+          After a win, <strong>Move On</strong> claims the trade. <strong>Death Match</strong> is not required after a clean win — only at one card, or if you opt in for bigger stakes.
         </p>
         <button type="button" id="close-help" class="seal-btn">Close</button>
       </div>

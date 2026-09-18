@@ -23,6 +23,7 @@ import {
   resolveShowdown,
   mustDeathMatch,
   makeDeathSession,
+  shouldOfferDeathMatch,
   applyWin,
   applyLoss,
   emptyCampaign,
@@ -235,6 +236,18 @@ test('assault type targets the lowest defender stat', () => {
   assert.equal(battle.defStat, 1);
 });
 
+test('a 6 never loses to a 3, even vs M and a bad element', () => {
+  for (let seed = 0; seed < 24; seed += 1) {
+    const battle = resolveBattle(
+      card({ attack: 6, type: 'P', element: 'fire' }),
+      card({ attack: 2, type: 'M', pdef: 3, mdef: 9, element: 'water' }),
+      mulberry32(seed),
+    );
+    assert.equal(battle.attackerWins, true, `seed ${seed}`);
+    assert.equal(battle.summary, '6 vs 3 — capture');
+  }
+});
+
 test('AI selects a legal empty cell and a card from its hand', () => {
   const match = createMatch({ seed: 21 });
   match.phase = 'ai';
@@ -378,6 +391,9 @@ test('Death Match stakes two more than the table trade', () => {
 test('Death Match is forced at one card and still has a rival payout pool', () => {
   assert.equal(mustDeathMatch(1), true);
   assert.equal(mustDeathMatch(8), false);
+  assert.equal(shouldOfferDeathMatch({ albumCount: 8, optedIn: false }), false);
+  assert.equal(shouldOfferDeathMatch({ albumCount: 8, optedIn: true }), true);
+  assert.equal(shouldOfferDeathMatch({ albumCount: 1, optedIn: false }), true);
   const session = makeDeathSession(
     {
       player: [{ uid: 'last', id: 'ember-drake' }],
