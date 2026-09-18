@@ -133,7 +133,7 @@ A draw moves no cards. After a win, **Move On** applies that trade and returns t
 - **Duchess Mireveil** — Voidglass Lich, Abyssal Countess, Pearl Seraph
 - **Warden Ferric** — Iron Vow, Gilded Colossus, Runebound Golem
 
-**Death Match** is never required after a clean win. It is an opt-in gamble for bigger stakes, and it is the only path when your album is down to **one card**. Each side pulls one card at random and clashes; the loser pays **two more** than the table trade (All pays the wager plus two vault cards, if any remain).
+**Death Match** is never required after a clean 3×3 win — **Move On** claims the table trade. It is an opt-in gamble from the title screen or the claim overlay, and it is **forced when your album is down to one card**. Each side pulls one card at random and clashes (Attack vs the named defense, same as a board clash). The loser pays **two more** than the selected trade rule (One → 3, Three → 5, All → the wager plus two vault cards), capped by how many cards remain.
 
 ## Project
 

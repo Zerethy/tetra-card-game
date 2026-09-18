@@ -21,6 +21,8 @@ import {
   deathTakeCount,
   preferUltimates,
   resolveShowdown,
+  mustDeathMatch,
+  makeDeathSession,
   applyWin,
   applyLoss,
   emptyCampaign,
@@ -370,6 +372,29 @@ test('Death Match stakes two more than the table trade', () => {
   assert.equal(deathTakeCount('three', 8, 12), 5);
   assert.equal(deathTakeCount('all', 8, 12), 10);
   assert.equal(deathTakeCount('all', 8, 8), 8);
+  assert.equal(deathTakeCount('one', 1, 1), 1);
+});
+
+test('Death Match is forced at one card and still has a rival payout pool', () => {
+  assert.equal(mustDeathMatch(1), true);
+  assert.equal(mustDeathMatch(8), false);
+  const session = makeDeathSession(
+    {
+      player: [{ uid: 'last', id: 'ember-drake' }],
+      trade: 'one',
+      rival: 'cindervow',
+    },
+    mulberry32(3),
+  );
+  assert.equal(session.playerWager.length, 1);
+  assert.equal(session.aiWager.length, 8);
+  assert.equal(session.aiVault.length, 2);
+  assert.ok(session.aiWager.some((c) => c.id === 'hellforge' || c.id === 'ashen-phoenix' || c.id === 'cinder-behemoth'));
+  assert.equal(deathTakeCount('one', session.playerWager.length, 1), 1);
+  assert.equal(
+    deathTakeCount('one', session.aiWager.length, session.aiWager.length + session.aiVault.length),
+    3,
+  );
 });
 
 test('named bosses each hold three unique high-tier ultimates', () => {

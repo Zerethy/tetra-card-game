@@ -78,6 +78,27 @@ export function deathTakeCount(rule, wagerCount, collectionCount) {
   return Math.min(Math.max(0, collectionCount | 0), Math.max(0, boosted));
 }
 
+/** Death Match is forced when the album is a single card. */
+export function mustDeathMatch(ownedCount) {
+  return (ownedCount | 0) === 1;
+}
+
+export function makeDeathSession(campaign, rng) {
+  const boss = bossById(campaign.rival);
+  const playerWager = (campaign.player || []).map(hydrateOwned).filter(Boolean);
+  const aiTemplates = buildBossDeck(boss, rng);
+  const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || newUid() }));
+  const aiVault = buildAiVault(aiWager, 2, rng).map(hydrateOwned).filter(Boolean);
+  return {
+    boss,
+    trade: campaign.trade,
+    playerWager,
+    aiWager,
+    aiVault,
+    playerCollectionSize: campaign.player.length,
+  };
+}
+
 export function autoPickHighest(cards, n) {
   return cards
     .slice()

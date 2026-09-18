@@ -22,6 +22,8 @@ import {
   buildAiVault,
   tradeTakeCount,
   deathTakeCount,
+  mustDeathMatch,
+  makeDeathSession,
   autoPickHighest,
   preferUltimates,
   applyWin,
@@ -57,6 +59,8 @@ const els = {
   rivalRow: document.getElementById('rival-row'),
   bossUltimates: document.getElementById('boss-ultimates'),
   collectionLine: document.getElementById('collection-line'),
+  deathBtn: document.getElementById('death-btn'),
+  deathWarn: document.getElementById('death-warn'),
   claim: document.getElementById('claim-overlay'),
   claimTitle: document.getElementById('claim-title'),
   claimLede: document.getElementById('claim-lede'),
@@ -153,9 +157,11 @@ function renderSetup() {
   }
   if (els.start) {
     if (n === 0) els.start.textContent = 'Rebuild Album';
-    else if (n === 1) els.start.textContent = 'Death Match';
+    else if (mustDeathMatch(n)) els.start.textContent = 'Death Match';
     else els.start.textContent = 'New Match';
   }
+  els.deathWarn?.classList.toggle('hidden', !mustDeathMatch(n));
+  els.deathBtn?.classList.toggle('hidden', n <= 1);
 }
 
 function openTitle() {
@@ -222,7 +228,7 @@ function startMatch() {
     els.log.textContent = 'A fresh starter album is bound.';
     return;
   }
-  if (campaign.player.length === 1) {
+  if (mustDeathMatch(campaign.player.length)) {
     openDeathMatch({ fromTitle: true });
     return;
   }
@@ -500,18 +506,15 @@ function confirmClaim() {
 
 function openDeathMatch(opts = {}) {
   const rng = mulberry32((Math.random() * 2 ** 31) | 0);
-  const boss = session?.boss || bossById(campaign.rival);
-  const playerPool = (session?.playerWager?.length ? session.playerWager : campaign.player.map(hydrateOwned)).filter(Boolean);
-  const aiPool = [
-    ...(session?.aiWager || []),
-    ...(session?.aiVault || []),
-  ].filter(Boolean);
-  const aiFallback = aiPool.length ? aiPool : buildBossDeck(boss, rng).map((t) => ({ ...t, uid: newUidSafe() }));
+  if (!session) session = makeDeathSession(campaign, rng);
+  const boss = session.boss || bossById(campaign.rival);
+  const playerPool = session.playerWager.filter(Boolean);
+  const aiPool = [...session.aiWager, ...(session.aiVault || [])].filter(Boolean);
   const playerCard = playerPool[Math.floor(rng() * playerPool.length)] || hydrateOwned(campaign.player[0]);
-  const aiCard = aiFallback[Math.floor(rng() * aiFallback.length)];
-  const rule = session?.trade || campaign.trade;
+  const aiCard = aiPool[Math.floor(rng() * aiPool.length)];
+  const rule = session.trade || campaign.trade;
   const collectionCount = campaign.player.length;
-  const wagerCount = session?.playerWager?.length || collectionCount;
+  const aiCollection = session.aiWager.length + (session.aiVault?.length || 0);
   deathState = {
     fromTitle: Boolean(opts.fromTitle),
     boss,
@@ -520,22 +523,20 @@ function openDeathMatch(opts = {}) {
     aiCard,
     rng,
     resolved: null,
-    take: deathTakeCount(rule, session?.aiWager?.length || 8, (session?.aiWager?.length || 8) + (session?.aiVault?.length || 0)),
-    loseTake: deathTakeCount(rule, wagerCount, collectionCount),
+    take: deathTakeCount(rule, session.aiWager.length, aiCollection),
+    loseTake: deathTakeCount(rule, session.playerWager.length, collectionCount),
   };
+  const ruleName = TRADE_RULES.find((r) => r.id === rule)?.name || 'One';
   els.claim?.classList.add('hidden');
   els.title.classList.add('hidden');
-  els.deathLede.textContent =
-    `Each side pulls one card at random. Loser pays Death stakes (${deathState.loseTake} if you fall, ${deathState.take} if ${boss.name} falls) — harsher than ${rule}.`;
+  els.deathLede.textContent = mustDeathMatch(collectionCount)
+    ? `Last card. Each side pulls one at random. Death stakes: you risk ${deathState.loseTake}, ${boss.name} risks ${deathState.take} (${ruleName} +2).`
+    : `Each side pulls one card at random. Loser pays Death stakes — ${ruleName} plus two extra (you risk ${deathState.loseTake}, ${boss.name} risks ${deathState.take}).`;
   els.deathDuel.innerHTML = `<div class="death-backs">${renderCardBack('dm-p', { owner: 'none' })}${renderCardBack('dm-a', { owner: 'none' })}</div>`;
   els.deathNote.textContent = 'Pull to reveal the clash.';
   els.deathGo.classList.remove('hidden');
   els.deathDone.classList.add('hidden');
   els.death.classList.remove('hidden');
-}
-
-function newUidSafe() {
-  return `d-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function runDeathMatch() {
@@ -663,6 +664,7 @@ els.claimGrid?.addEventListener('click', (event) => {
 
 els.claimConfirm?.addEventListener('click', confirmClaim);
 els.deathOptin?.addEventListener('click', () => openDeathMatch({ fromTitle: false }));
+els.deathBtn?.addEventListener('click', () => openDeathMatch({ fromTitle: true }));
 els.deathGo?.addEventListener('click', runDeathMatch);
 els.deathDone?.addEventListener('click', finishDeathMatch);
 
