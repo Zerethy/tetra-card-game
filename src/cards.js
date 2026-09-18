@@ -317,3 +317,12 @@ export function hexDigit(n) {
 export function cardById(id) {
   return ROSTER.find((c) => c.id === id);
 }
+
+/** Visual rarity only — does not change battle math. */
+export function rarityOf(card) {
+  if (card?.rarity) return card.rarity;
+  const power = (card?.attack || 0) + (card?.pdef || 0) + (card?.mdef || 0);
+  if ((card?.attack || 0) >= 10 || power >= 22) return 'legendary';
+  if (power >= 16) return 'rare';
+  return 'uncommon';
+}

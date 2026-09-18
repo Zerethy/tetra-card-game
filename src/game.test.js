@@ -1,6 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DIR } from './cards.js';
 import {
   createMatch,
   placeCard,
@@ -11,6 +10,7 @@ import {
   elementModifier,
   hasOpposingArrow,
 } from './game.js';
+import { DIR, rarityOf } from './cards.js';
 import { chooseAiMove } from './ai.js';
 
 function card(partial) {
@@ -201,4 +201,12 @@ test('AI selects a legal empty cell and a card from its hand', () => {
   const result = placeCard(match, 'ai', move.handIndex, move.cellIndex);
   assert.equal(result.ok, true);
   assert.equal(match.phase, 'player');
+});
+
+test('rarity is cosmetic and inferred from printed stats', () => {
+  assert.equal(rarityOf({ attack: 10, pdef: 6, mdef: 6 }), 'legendary');
+  assert.equal(rarityOf({ attack: 7, pdef: 8, mdef: 8 }), 'legendary');
+  assert.equal(rarityOf({ attack: 6, pdef: 5, mdef: 5 }), 'rare');
+  assert.equal(rarityOf({ attack: 4, pdef: 4, mdef: 4 }), 'uncommon');
+  assert.equal(rarityOf({ rarity: 'rare', attack: 10, pdef: 9, mdef: 9 }), 'rare');
 });

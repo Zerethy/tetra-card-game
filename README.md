@@ -86,3 +86,7 @@ Lady Vesper plays from her drawn hand. She scores each legal (card, empty square
 Vite + vanilla JS. Game rules live in `src/game.js` (pure, unit-tested). Card roster: `src/cards.js`. Original SVG portraits: `src/art.js`.
 
 Inspired by the look of Tetra Master’s parchment table, blue/pink ownership, top-left stats, elemental icons, and “You Win!” banner — rebuilt with original work only.
+
+## Visuals
+
+Cards use original painted-style SVG portraits (atmospheric scenes, rim light, particles) with gold frames, a stats plaque, metal elemental medallions, and a rarity sheen (uncommon / rare / legendary — cosmetic only). Ownership is a blue or pink wash over the art rather than a flat fill. The table is leather-grain parchment; playable cells glow gold; captures flip with a brief flash.
