@@ -326,3 +326,126 @@ export function rarityOf(card) {
   if (power >= 16) return 'rare';
   return 'uncommon';
 }
+
+const FRAME_BY_ELEMENT = {
+  fire: 'crimson',
+  holy: 'ivory',
+  dark: 'void',
+  thunder: 'azure',
+  ice: 'frost',
+  water: 'tide',
+  poison: 'venom',
+  earth: 'bronze',
+  wind: 'gale',
+};
+
+export function frameOf(card) {
+  return card?.frame || FRAME_BY_ELEMENT[card?.element] || 'bronze';
+}
+
+const TYPE_WORD = { P: 'Physical', M: 'Magical', X: 'Flexible', A: 'Assault' };
+
+export function typeWord(type) {
+  return TYPE_WORD[type] || 'Physical';
+}
+
+/** Original type-lines and flavor. Real English only — no fake runes. */
+const LORE = {
+  'ashen-phoenix': {
+    kind: 'Champion — Ember Beast',
+    flavor: 'When the last temple burned, it nested in the coals and called the fire home.',
+  },
+  gravewing: {
+    kind: 'Champion — Bone Tyrant',
+    flavor: 'Its wings are a reliquary. Every feather is a name the grave still owes.',
+  },
+  tidebreaker: {
+    kind: 'Champion — Abyss Coil',
+    flavor: 'Ships vanish where its coils rewrite the map of the deep.',
+  },
+  stormglass: {
+    kind: 'Champion — Sky-Scribe',
+    flavor: 'She writes verdicts in lightning. The sky is her only witness.',
+  },
+  'iron-vow': {
+    kind: 'Champion — Oath Paladin',
+    flavor: 'The vow is older than the armor. The armor is only there to keep it.',
+  },
+  voidglass: {
+    kind: 'Champion — Last Phylactery',
+    flavor: 'He stored his death in a shard of night and forgot which pocket it was in.',
+  },
+  bloodmoon: {
+    kind: 'Champion — Crimson Duelist',
+    flavor: 'She counts the duel in heartbeats. Yours, not hers.',
+  },
+  thornwake: {
+    kind: 'Champion — Bloom of Knives',
+    flavor: 'The orchard opens its mouths at dusk. Each blossom is a quiet blade.',
+  },
+  'cinder-behemoth': {
+    kind: 'Champion — Furnace Hide',
+    flavor: 'Mountains remember its tread as a season of ash.',
+  },
+  hellforge: {
+    kind: 'Champion — Demon Lord',
+    flavor: 'Crowns are smelted, not inherited, in the foundry of his court.',
+  },
+  'gilded-colossus': {
+    kind: 'Champion — Judgment Engine',
+    flavor: 'It was built to weigh sins. It learned to collect them instead.',
+  },
+  nightbloom: {
+    kind: 'Champion — Hex Orchard',
+    flavor: 'Her garden drinks moonlight and pays rent in curses.',
+  },
+  'rift-stalker': {
+    kind: 'Champion — Between-Worlds',
+    flavor: 'He walks the seam where two nights fail to meet.',
+  },
+  'bone-choir': {
+    kind: 'Champion — Red Cantor',
+    flavor: 'The hymn has no living singers. That has never stopped it.',
+  },
+  skyraid: {
+    kind: 'Champion — Gale Lance',
+    flavor: 'Storms take the shape of a wyvern when they want to be believed.',
+  },
+  'abyssal-countess': {
+    kind: 'Champion — Velvet Cataclysm',
+    flavor: 'She drowned a city once, for the acoustics.',
+  },
+  runebound: {
+    kind: 'Champion — Law of Stone',
+    flavor: 'The runes are a contract. The golem is the signature that walks.',
+  },
+  'pearl-seraph': {
+    kind: 'Champion — Dawnwarden',
+    flavor: 'Dawn is a door. She stands in it until the dark learns manners.',
+  },
+  plaguebloom: {
+    kind: 'Champion — Sweet Rot',
+    flavor: 'It smells like orchards. That is how it finds the door.',
+  },
+  'ember-drake': {
+    kind: 'Champion — Kindling Prince',
+    flavor: 'Smaller than the old drakes. Hungrier, which is worse.',
+  },
+  'frost-wraith': {
+    kind: 'Champion — Hollow Thaw',
+    flavor: 'Winter leftover in the shape of someone who would not leave.',
+  },
+  'shard-knight': {
+    kind: 'Champion — Glass Crusade',
+    flavor: 'Every plate is a frozen vow. They crack before they yield.',
+  },
+};
+
+export function loreOf(card) {
+  return (
+    LORE[card?.id] || {
+      kind: `Champion — ${card?.title || 'Relic'}`,
+      flavor: card?.title || 'A champion bound to the ninefold grid.',
+    }
+  );
+}

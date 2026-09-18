@@ -89,4 +89,4 @@ Inspired by the look of Tetra Master’s parchment table, blue/pink ownership, t
 
 ## Visuals
 
-Cards use original painted-style SVG portraits (atmospheric scenes, rim light, particles) with gold frames, a stats plaque, metal elemental medallions, and a rarity sheen (uncommon / rare / legendary — cosmetic only). Ownership is a blue or pink wash over the art rather than a flat fill. The table is leather-grain parchment; playable cells glow gold; captures flip with a brief flash.
+Cards use a tall premium TCG layout: color-coded beveled frames (crimson, ivory, void, azure, and others by element), a serif name bar, a large portrait window, a type line, and a parchment flavor box with real English text. Tetra Master stats stay in the portrait (Attack, P/M/X/A, physical and magical defense) with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Portraits are original painted-style SVGs. Rarity sheen is cosmetic.

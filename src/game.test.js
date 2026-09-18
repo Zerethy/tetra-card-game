@@ -10,7 +10,7 @@ import {
   elementModifier,
   hasOpposingArrow,
 } from './game.js';
-import { DIR, rarityOf } from './cards.js';
+import { DIR, rarityOf, frameOf, loreOf } from './cards.js';
 import { chooseAiMove } from './ai.js';
 
 function card(partial) {
@@ -209,4 +209,14 @@ test('rarity is cosmetic and inferred from printed stats', () => {
   assert.equal(rarityOf({ attack: 6, pdef: 5, mdef: 5 }), 'rare');
   assert.equal(rarityOf({ attack: 4, pdef: 4, mdef: 4 }), 'uncommon');
   assert.equal(rarityOf({ rarity: 'rare', attack: 10, pdef: 9, mdef: 9 }), 'rare');
+});
+
+test('frame color and lore are original English chrome, not battle math', () => {
+  assert.equal(frameOf({ element: 'fire' }), 'crimson');
+  assert.equal(frameOf({ element: 'holy' }), 'ivory');
+  assert.equal(frameOf({ element: 'dark' }), 'void');
+  const lore = loreOf({ id: 'iron-vow', title: 'Oath Paladin' });
+  assert.match(lore.kind, /Paladin/);
+  assert.match(lore.flavor, /vow/i);
+  assert.equal(loreOf({ title: 'Trial' }).kind, 'Champion — Trial');
 });
