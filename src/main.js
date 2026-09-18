@@ -142,7 +142,7 @@ function render() {
       : 'Place it on an empty square.';
     els.hint.textContent = selected == null
       ? ''
-      : `${match.player.hand[selected].name} · ${match.player.hand[selected].title}`;
+      : `${match.player.hand[selected].name} · Lv.${match.player.hand[selected].level} · ${match.player.hand[selected].title}`;
   } else if (match.phase === 'ai') {
     els.status.textContent = 'Lady Vesper studies the grid…';
     els.hint.textContent = '';

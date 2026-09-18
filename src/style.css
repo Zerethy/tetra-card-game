@@ -446,6 +446,26 @@ button {
     0 0 16px rgba(255, 200, 80, 0.4);
 }
 
+.tm-card.rarity-epic {
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.48),
+    0 0 14px rgba(200, 140, 255, 0.32);
+}
+
+.tm-card.owner-player.rarity-epic {
+  box-shadow:
+    0 0 0 2px #7ec8f8,
+    0 0 14px rgba(200, 140, 255, 0.28),
+    0 0 14px rgba(90, 170, 255, 0.4);
+}
+
+.tm-card.owner-ai.rarity-epic {
+  box-shadow:
+    0 0 0 2px #f090b4,
+    0 0 14px rgba(200, 140, 255, 0.24),
+    0 0 14px rgba(220, 70, 110, 0.35);
+}
+
 .tm-card.owner-player.rarity-legendary {
   box-shadow:
     0 0 0 2px #7ec8f8,
@@ -550,8 +570,56 @@ button {
 
 .tm-cost {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tm-level {
+  flex: 0 0 auto;
+  min-width: 14px;
+  height: 10cqh;
+  min-height: 12px;
+  max-height: 18px;
+  padding: 0 4px;
   display: grid;
   place-items: center;
+  border-radius: 3px;
+  font-family: Cinzel, serif;
+  font-weight: 800;
+  font-size: clamp(7px, 6.4cqh, 11px);
+  line-height: 1;
+  color: #fff6d8;
+  background: linear-gradient(180deg, #c4a060, #5a3818);
+  border: 1px solid var(--gilt-hi);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 1px #000;
+}
+
+.tm-card.rarity-common .tm-level {
+  background: linear-gradient(180deg, #b89868, #5a3a18);
+  color: #f4ead0;
+}
+
+.tm-card.rarity-uncommon .tm-level {
+  background: linear-gradient(180deg, #d0d8e0, #5a6878);
+  color: #f4f8ff;
+}
+
+.tm-card.rarity-rare .tm-level {
+  background: linear-gradient(180deg, #8ad0ff, #1a4a90);
+  color: #f4fbff;
+}
+
+.tm-card.rarity-epic .tm-level {
+  background: linear-gradient(180deg, #e8c8ff, #5a2088);
+  color: #fff8ff;
+}
+
+.tm-card.rarity-legendary .tm-level {
+  background: linear-gradient(180deg, #ffe27a, #c47818);
+  color: #3a2408;
+  text-shadow: 0 1px 0 rgba(255, 248, 220, 0.5);
 }
 
 .tm-portrait {
@@ -617,12 +685,14 @@ button {
 }
 
 .tm-card.rarity-legendary .tm-sheen,
+.tm-card.rarity-epic .tm-sheen,
 .player-rail .tm-card:hover .tm-sheen,
 .tm-card.selected .tm-sheen {
   animation: sheenSweep 2.4s ease-in-out infinite;
 }
 
-.tm-card.rarity-legendary .tm-bevel::after {
+.tm-card.rarity-legendary .tm-bevel::after,
+.tm-card.rarity-epic .tm-bevel::after {
   content: '';
   position: absolute;
   inset: 0;

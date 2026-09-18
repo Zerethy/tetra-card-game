@@ -9,8 +9,9 @@ import {
   emptyCells,
   elementModifier,
   hasOpposingArrow,
+  DECK_QUOTA,
 } from './game.js';
-import { DIR, rarityOf, frameOf, loreOf } from './cards.js';
+import { DIR, rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf } from './cards.js';
 import { chooseAiMove } from './ai.js';
 import { renderCard } from './ui.js';
 
@@ -204,12 +205,13 @@ test('AI selects a legal empty cell and a card from its hand', () => {
   assert.equal(match.phase, 'player');
 });
 
-test('rarity is cosmetic and inferred from printed stats', () => {
-  assert.equal(rarityOf({ attack: 10, pdef: 6, mdef: 6 }), 'legendary');
-  assert.equal(rarityOf({ attack: 7, pdef: 8, mdef: 8 }), 'legendary');
-  assert.equal(rarityOf({ attack: 6, pdef: 5, mdef: 5 }), 'rare');
-  assert.equal(rarityOf({ attack: 4, pdef: 4, mdef: 4 }), 'uncommon');
-  assert.equal(rarityOf({ rarity: 'rare', attack: 10, pdef: 9, mdef: 9 }), 'rare');
+test('rarity follows card level', () => {
+  assert.equal(rarityOf({ level: 1 }), 'common');
+  assert.equal(rarityOf({ level: 4 }), 'uncommon');
+  assert.equal(rarityOf({ level: 6 }), 'rare');
+  assert.equal(rarityOf({ level: 8 }), 'epic');
+  assert.equal(rarityOf({ level: 10 }), 'legendary');
+  assert.equal(rarityOf({ rarity: 'rare', level: 10 }), 'rare');
 });
 
 test('frame color and lore are original English chrome, not battle math', () => {
@@ -217,9 +219,10 @@ test('frame color and lore are original English chrome, not battle math', () => 
   assert.equal(frameOf({ element: 'holy' }), 'ivory');
   assert.equal(frameOf({ element: 'dark' }), 'void');
   const lore = loreOf({ id: 'iron-vow', title: 'Oath Paladin' });
+  assert.match(lore.kind, /Warlord/);
   assert.match(lore.kind, /Paladin/);
   assert.match(lore.flavor, /vow/i);
-  assert.equal(loreOf({ title: 'Trial' }).kind, 'Champion — Trial');
+  assert.equal(loreOf({ title: 'Trial' }).kind, 'Beast — Trial');
 });
 
 test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
@@ -236,11 +239,14 @@ test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
     art: 'paladin',
     owner: 'player',
     instanceId: 3,
+    level: 6,
   });
   assert.match(html, /Iron Vow/);
   assert.match(html, /The vow is older than the armor/);
   assert.match(html, /Oath Paladin/);
-  assert.match(html, />Champion</);
+  assert.match(html, />Warlord</);
+  assert.match(html, /data-level="6"/);
+  assert.match(html, /class="tm-level"[^>]*>6</);
   assert.match(html, /class="arr N"/);
   assert.match(html, /class="arr S"/);
   assert.match(html, /<span class="atk">7<\/span>/);
@@ -250,4 +256,38 @@ test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
   assert.match(html, /frame-ivory/);
   assert.match(html, /owner-player/);
   assert.doesNotMatch(html, /[\uE000-\uF8FF]/);
+});
+
+test('every roster card sits inside its level band', () => {
+  assert.equal(ROSTER.length, 22);
+  for (const card of ROSTER) {
+    const band = LEVELS[card.level - 1];
+    assert.ok(band, card.id);
+    const total = totalValue(card);
+    const peak = maxRank(card);
+    assert.ok(
+      total >= band.totalMin && total <= band.totalMax,
+      `${card.id} total ${total} not in ${band.totalMin}–${band.totalMax}`,
+    );
+    assert.ok(peak <= band.maxRank, `${card.id} rank ${peak} exceeds ${band.maxRank}`);
+  }
+});
+
+test('player and AI starter decks share the same level mix and no cards', () => {
+  for (const seed of [1, 7, 21, 99, 404]) {
+    const match = createMatch({ seed });
+    const player = [...match.player.hand, ...match.player.deck];
+    const ai = [...match.ai.hand, ...match.ai.deck];
+    assert.equal(player.length, 8);
+    assert.equal(ai.length, 8);
+    const tally = (cards) => {
+      const counts = { beast: 0, warlord: 0, relic: 0, sovereign: 0 };
+      for (const card of cards) counts[tierOf(card)] += 1;
+      return counts;
+    };
+    assert.deepEqual(tally(player), DECK_QUOTA);
+    assert.deepEqual(tally(ai), DECK_QUOTA);
+    const ids = [...player, ...ai].map((c) => c.id);
+    assert.equal(new Set(ids).size, 16);
+  }
 });

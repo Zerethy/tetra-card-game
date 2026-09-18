@@ -1,9 +1,12 @@
-import { DIRECTIONS, ELEMENT_BEATS, ROSTER, hexDigit } from './cards.js';
+import { DIRECTIONS, ELEMENT_BEATS, ROSTER, hexDigit, tierOf } from './cards.js';
 
-const DECK_SIZE = 8;
+export const DECK_SIZE = 8;
 const HAND_SIZE = 5;
 const BOARD_SIZE = 9;
 const COLS = 3;
+
+/** Each starter deck of 8: mostly beasts, one warlord, one relic, one sovereign. */
+export const DECK_QUOTA = { beast: 5, warlord: 1, relic: 1, sovereign: 1 };
 
 export function mulberry32(seed) {
   let t = seed >>> 0;
@@ -33,14 +36,46 @@ function instanceCard(template, owner, instanceId) {
   };
 }
 
+function bucketRoster(roster, rng) {
+  const buckets = { beast: [], warlord: [], relic: [], sovereign: [] };
+  for (const card of shuffle(roster, rng)) {
+    buckets[tierOf(card)].push(card);
+  }
+  return buckets;
+}
+
+function takeFromQuota(buckets, rng) {
+  const deck = [];
+  for (const [tier, count] of Object.entries(DECK_QUOTA)) {
+    for (let i = 0; i < count; i++) {
+      if (buckets[tier].length) deck.push(buckets[tier].pop());
+    }
+  }
+  const fallback = ['sovereign', 'relic', 'warlord', 'beast'];
+  while (deck.length < DECK_SIZE) {
+    const tier = fallback.find((key) => buckets[key].length);
+    if (!tier) break;
+    deck.push(buckets[tier].pop());
+  }
+  return shuffle(deck, rng);
+}
+
+export function dealStarterDecks(roster, rng) {
+  const buckets = bucketRoster(roster, rng);
+  return {
+    player: takeFromQuota(buckets, rng),
+    ai: takeFromQuota(buckets, rng),
+  };
+}
+
 export function createMatch(options = {}) {
   const seed = options.seed ?? Math.floor(Math.random() * 2 ** 31);
   const rng = options.rng || mulberry32(seed);
-  const pool = shuffle(ROSTER, rng);
+  const dealt = dealStarterDecks(ROSTER, rng);
   let nextId = 1;
 
-  const playerDeck = pool.slice(0, DECK_SIZE).map((c) => instanceCard(c, 'player', nextId++));
-  const aiDeck = pool.slice(DECK_SIZE, DECK_SIZE * 2).map((c) => instanceCard(c, 'ai', nextId++));
+  const playerDeck = dealt.player.map((c) => instanceCard(c, 'player', nextId++));
+  const aiDeck = dealt.ai.map((c) => instanceCard(c, 'ai', nextId++));
 
   const playerHand = playerDeck.splice(0, HAND_SIZE);
   const aiHand = aiDeck.splice(0, HAND_SIZE);
@@ -296,4 +331,4 @@ export function cloneState(state) {
   return copy;
 }
 
-export { HAND_SIZE, DECK_SIZE, BOARD_SIZE };
+export { HAND_SIZE, BOARD_SIZE };

@@ -37,7 +37,24 @@ Each card shows four values in the top-left, matching the classic layout:
 | Numeral beside the type | **Physical Defense** |
 | Numeral under the type | **Magical Defense** |
 
-Gold pips on the edges are **arrows** (eight possible directions, including diagonals). Some cards also show an **element** glyph in the upper-right.
+Gold pips on the edges are **arrows** (eight possible directions, including diagonals). Some cards also show an **element** glyph in the upper-right. A numbered **level badge** sits beside the gem (1–10).
+
+**Total value** is Attack + P.Def + M.Def (the three numeric tetra ranks). Battle type is not counted. Rank ceiling is the highest of those three, printed in hex **1–A**.
+
+| Level | Role | Rank ceiling | Total value | Aetherbound examples |
+|-------|------|--------------|-------------|----------------------|
+| 1 | Common beasts | 6 | 10–13 | Ember Drake, Plaguebloom, Nightbloom Witch |
+| 2 | Beasts | 7 | 12–15 | Bone Choir, Skyraid Wyvern, Frost Wraith |
+| 3 | Beasts | 7 | 16–18 | Stormglass Oracle, Thornwake Matron, Tidebreaker |
+| 4 | Beasts | 7 | 17–20 | Bloodmoon Duelist, Rift Stalker |
+| 5 | Elite beasts | 7 | 20–22 | Gravewing, Shard Knight |
+| 6 | Warlords | 8 | 20–23 | Iron Vow, Voidglass Lich |
+| 7 | Warlords | 8 | 23–26 | Cinder Behemoth, Abyssal Countess |
+| 8 | Relics | 9 | 23–26 | Ashen Phoenix, Gilded Colossus |
+| 9 | Relics | A | 24–27 | Runebound Golem |
+| 10 | Sovereigns | A | 26–29 | Hellforge Tyrant, Pearl Seraph |
+
+Each starter deck of **8** is dealt from that mix: **5** beasts (levels 1–5), **1** warlord (6–7), **1** relic (8–9), and **1** sovereign (10). Player and AI draw the same quota from a shared pool so matches stay fair. Names and art are original — no copyrighted FF cards or characters.
 
 All names and illustrations are original dark-fantasy champions — paladins, liches, demon lords, constructs, and boss-like beasts — drawn as SVG, not ripped from other games.
 
@@ -89,4 +106,4 @@ Inspired by the look of Tetra Master’s parchment table, blue/pink ownership, t
 
 ## Visuals
 
-Cards use a tall premium TCG layout: thick color-coded beveled frames (crimson warrior, ivory cleric, void rogue, azure mage, and others by element), a gilt inner trim, a serif name bar with an elemental gem, a large painted portrait window, a metal type line, and a parchment flavor box with real English text. Tetra Master stats stay on the portrait (Attack, P/M/X/A, physical and magical defense) and again in a small box on the text area, with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Portraits are original painted-style SVGs. Rarity sheen is cosmetic.
+Cards use a tall premium TCG layout: thick color-coded beveled frames (crimson warrior, ivory cleric, void rogue, azure mage, and others by element), a gilt inner trim, a serif name bar with a **level badge** plus elemental gem, a large painted portrait window, a metal type line (Beast / Warlord / Relic / Sovereign), and a parchment flavor box with real English text. Tetra Master stats stay on the portrait (Attack, P/M/X/A, physical and magical defense) and again in a small box on the text area, with gold directional arrows on the edges. Ownership is a blue or pink outer rim on the board. Portraits are original painted-style SVGs. Level sheen (epic/legendary) is cosmetic.

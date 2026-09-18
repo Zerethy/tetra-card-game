@@ -47,10 +47,11 @@ export const ROSTER = [
     id: 'ashen-phoenix',
     name: 'Ashen Phoenix',
     title: 'Cinder Sovereign',
+    level: 8,
     attack: 8,
     type: 'P',
-    pdef: 4,
-    mdef: 6,
+    pdef: 9,
+    mdef: 8,
     arrows: A.N | A.NE | A.E | A.SW,
     element: 'fire',
     art: 'phoenix',
@@ -59,10 +60,11 @@ export const ROSTER = [
     id: 'gravewing',
     name: 'Gravewing',
     title: 'Bone Tyrant',
+    level: 5,
     attack: 7,
     type: 'M',
-    pdef: 5,
-    mdef: 8,
+    pdef: 6,
+    mdef: 7,
     arrows: A.N | A.W | A.E | A.S,
     element: 'dark',
     art: 'gravewing',
@@ -71,6 +73,7 @@ export const ROSTER = [
     id: 'tidebreaker',
     name: 'Tidebreaker',
     title: 'Abyss Coil',
+    level: 3,
     attack: 6,
     type: 'P',
     pdef: 7,
@@ -83,10 +86,11 @@ export const ROSTER = [
     id: 'stormglass',
     name: 'Stormglass Oracle',
     title: 'Sky-Scribe',
+    level: 3,
     attack: 5,
     type: 'M',
-    pdef: 3,
-    mdef: 9,
+    pdef: 4,
+    mdef: 7,
     arrows: A.N | A.NE | A.NW,
     element: 'thunder',
     art: 'oracle',
@@ -95,10 +99,11 @@ export const ROSTER = [
     id: 'iron-vow',
     name: 'Iron Vow',
     title: 'Oath Paladin',
-    attack: 7,
+    level: 6,
+    attack: 8,
     type: 'P',
-    pdef: 9,
-    mdef: 4,
+    pdef: 8,
+    mdef: 5,
     arrows: A.N | A.S | A.W,
     element: 'holy',
     art: 'paladin',
@@ -107,9 +112,10 @@ export const ROSTER = [
     id: 'voidglass',
     name: 'Voidglass Lich',
     title: 'Last Phylactery',
-    attack: 6,
+    level: 6,
+    attack: 7,
     type: 'M',
-    pdef: 4,
+    pdef: 6,
     mdef: 8,
     arrows: A.E | A.SE | A.S | A.SW,
     element: 'dark',
@@ -119,10 +125,11 @@ export const ROSTER = [
     id: 'bloodmoon',
     name: 'Bloodmoon Duelist',
     title: 'Crimson Step',
-    attack: 9,
+    level: 4,
+    attack: 7,
     type: 'P',
-    pdef: 3,
-    mdef: 3,
+    pdef: 6,
+    mdef: 4,
     arrows: A.NE | A.E | A.SE,
     element: 'poison',
     art: 'duelist',
@@ -131,10 +138,11 @@ export const ROSTER = [
     id: 'thornwake',
     name: 'Thornwake Matron',
     title: 'Bloom of Knives',
-    attack: 4,
+    level: 3,
+    attack: 5,
     type: 'P',
-    pdef: 8,
-    mdef: 6,
+    pdef: 7,
+    mdef: 5,
     arrows: A.N | A.S | A.E | A.W,
     element: 'earth',
     art: 'matron',
@@ -143,10 +151,11 @@ export const ROSTER = [
     id: 'cinder-behemoth',
     name: 'Cinder Behemoth',
     title: 'Furnace Hide',
+    level: 7,
     attack: 8,
     type: 'P',
     pdef: 8,
-    mdef: 2,
+    mdef: 7,
     arrows: A.N | A.NW | A.W | A.SW,
     element: 'fire',
     art: 'behemoth',
@@ -155,10 +164,11 @@ export const ROSTER = [
     id: 'hellforge',
     name: 'Hellforge Tyrant',
     title: 'Crown of Cinders',
+    level: 10,
     attack: 10,
     type: 'A',
-    pdef: 6,
-    mdef: 6,
+    pdef: 8,
+    mdef: 9,
     arrows: A.N | A.NE | A.E | A.SE | A.S,
     element: 'fire',
     art: 'tyrant',
@@ -167,9 +177,10 @@ export const ROSTER = [
     id: 'gilded-colossus',
     name: 'Gilded Colossus',
     title: 'Judgment Engine',
-    attack: 7,
+    level: 8,
+    attack: 8,
     type: 'A',
-    pdef: 8,
+    pdef: 9,
     mdef: 8,
     arrows: A.N | A.E | A.S | A.W,
     element: 'holy',
@@ -179,10 +190,11 @@ export const ROSTER = [
     id: 'nightbloom',
     name: 'Nightbloom Witch',
     title: 'Hex Orchard',
+    level: 1,
     attack: 5,
     type: 'M',
-    pdef: 4,
-    mdef: 7,
+    pdef: 3,
+    mdef: 5,
     arrows: A.NW | A.N | A.NE | A.E,
     element: 'poison',
     art: 'witch',
@@ -191,10 +203,11 @@ export const ROSTER = [
     id: 'rift-stalker',
     name: 'Rift Stalker',
     title: 'Between-Worlds',
-    attack: 8,
+    level: 4,
+    attack: 7,
     type: 'X',
-    pdef: 5,
-    mdef: 5,
+    pdef: 6,
+    mdef: 6,
     arrows: A.NE | A.SE | A.SW | A.NW,
     element: 'dark',
     art: 'stalker',
@@ -203,10 +216,11 @@ export const ROSTER = [
     id: 'bone-choir',
     name: 'Bone Choir',
     title: 'Red Cantor',
-    attack: 6,
+    level: 2,
+    attack: 5,
     type: 'M',
-    pdef: 5,
-    mdef: 7,
+    pdef: 4,
+    mdef: 6,
     arrows: A.N | A.E | A.S,
     element: 'dark',
     art: 'choir',
@@ -215,7 +229,8 @@ export const ROSTER = [
     id: 'skyraid',
     name: 'Skyraid Wyvern',
     title: 'Gale Lance',
-    attack: 7,
+    level: 2,
+    attack: 6,
     type: 'P',
     pdef: 4,
     mdef: 5,
@@ -227,10 +242,11 @@ export const ROSTER = [
     id: 'abyssal-countess',
     name: 'Abyssal Countess',
     title: 'Velvet Cataclysm',
+    level: 7,
     attack: 8,
     type: 'M',
-    pdef: 5,
-    mdef: 9,
+    pdef: 7,
+    mdef: 8,
     arrows: A.W | A.SW | A.S | A.SE | A.E,
     element: 'water',
     art: 'countess',
@@ -239,10 +255,11 @@ export const ROSTER = [
     id: 'runebound',
     name: 'Runebound Golem',
     title: 'Law of Stone',
-    attack: 5,
+    level: 9,
+    attack: 8,
     type: 'P',
-    pdef: 11,
-    mdef: 6,
+    pdef: 10,
+    mdef: 8,
     arrows: A.N | A.S | A.E | A.W | A.SE,
     element: 'earth',
     art: 'golem',
@@ -251,10 +268,11 @@ export const ROSTER = [
     id: 'pearl-seraph',
     name: 'Pearl Seraph',
     title: 'Dawnwarden',
-    attack: 6,
+    level: 10,
+    attack: 9,
     type: 'M',
-    pdef: 6,
-    mdef: 8,
+    pdef: 8,
+    mdef: 10,
     arrows: A.N | A.NE | A.NW | A.S,
     element: 'holy',
     art: 'seraph',
@@ -263,10 +281,11 @@ export const ROSTER = [
     id: 'plaguebloom',
     name: 'Plaguebloom',
     title: 'Sweet Rot',
+    level: 1,
     attack: 4,
     type: 'X',
-    pdef: 7,
-    mdef: 7,
+    pdef: 4,
+    mdef: 4,
     arrows: A.S | A.SW | A.SE | A.W,
     element: 'poison',
     art: 'plague',
@@ -275,10 +294,11 @@ export const ROSTER = [
     id: 'ember-drake',
     name: 'Ember Drake',
     title: 'Kindling Prince',
-    attack: 6,
+    level: 1,
+    attack: 5,
     type: 'P',
-    pdef: 5,
-    mdef: 4,
+    pdef: 4,
+    mdef: 3,
     arrows: A.E | A.SE | A.S,
     element: 'fire',
     art: 'drake',
@@ -287,10 +307,11 @@ export const ROSTER = [
     id: 'frost-wraith',
     name: 'Frost Wraith',
     title: 'Hollow Thaw',
-    attack: 5,
+    level: 2,
+    attack: 4,
     type: 'M',
     pdef: 4,
-    mdef: 10,
+    mdef: 7,
     arrows: A.N | A.W | A.NW,
     element: 'ice',
     art: 'wraith',
@@ -299,6 +320,7 @@ export const ROSTER = [
     id: 'shard-knight',
     name: 'Shard Knight',
     title: 'Glass Crusade',
+    level: 5,
     attack: 7,
     type: 'X',
     pdef: 7,
@@ -318,13 +340,65 @@ export function cardById(id) {
   return ROSTER.find((c) => c.id === id);
 }
 
-/** Visual rarity only — does not change battle math. */
+/**
+ * Triple Triad–style levels 1–10.
+ * Total value = Attack + P.Def + M.Def (the three numeric tetra ranks).
+ * Rank ceiling is the highest of those three, printed in hex 1–A.
+ */
+export const LEVELS = [
+  { level: 1, role: 'Common beasts', maxRank: 6, totalMin: 10, totalMax: 13 },
+  { level: 2, role: 'Beasts', maxRank: 7, totalMin: 12, totalMax: 15 },
+  { level: 3, role: 'Beasts', maxRank: 7, totalMin: 16, totalMax: 18 },
+  { level: 4, role: 'Beasts', maxRank: 7, totalMin: 17, totalMax: 20 },
+  { level: 5, role: 'Elite beasts', maxRank: 7, totalMin: 20, totalMax: 22 },
+  { level: 6, role: 'Warlords', maxRank: 8, totalMin: 20, totalMax: 23 },
+  { level: 7, role: 'Warlords', maxRank: 8, totalMin: 23, totalMax: 26 },
+  { level: 8, role: 'Relics', maxRank: 9, totalMin: 23, totalMax: 26 },
+  { level: 9, role: 'Relics', maxRank: 10, totalMin: 24, totalMax: 27 },
+  { level: 10, role: 'Sovereigns', maxRank: 10, totalMin: 26, totalMax: 29 },
+];
+
+export function totalValue(card) {
+  return (card?.attack || 0) + (card?.pdef || 0) + (card?.mdef || 0);
+}
+
+export function maxRank(card) {
+  return Math.max(card?.attack || 0, card?.pdef || 0, card?.mdef || 0);
+}
+
+export function levelOf(card) {
+  const n = Number(card?.level);
+  if (n >= 1 && n <= 10) return n;
+  return 1;
+}
+
+export function levelBand(level) {
+  return LEVELS[(levelOf({ level }) || 1) - 1];
+}
+
+/** beast 1–5, warlord 6–7, relic 8–9, sovereign 10 */
+export function tierOf(card) {
+  const lv = levelOf(card);
+  if (lv >= 10) return 'sovereign';
+  if (lv >= 8) return 'relic';
+  if (lv >= 6) return 'warlord';
+  return 'beast';
+}
+
+export function tierLabel(card) {
+  const labels = { beast: 'Beast', warlord: 'Warlord', relic: 'Relic', sovereign: 'Sovereign' };
+  return labels[tierOf(card)] || 'Beast';
+}
+
+/** Visual rarity derived from level — does not change battle math. */
 export function rarityOf(card) {
   if (card?.rarity) return card.rarity;
-  const power = (card?.attack || 0) + (card?.pdef || 0) + (card?.mdef || 0);
-  if ((card?.attack || 0) >= 10 || power >= 22) return 'legendary';
-  if (power >= 16) return 'rare';
-  return 'uncommon';
+  const lv = levelOf(card);
+  if (lv >= 10) return 'legendary';
+  if (lv >= 8) return 'epic';
+  if (lv >= 6) return 'rare';
+  if (lv >= 4) return 'uncommon';
+  return 'common';
 }
 
 const FRAME_BY_ELEMENT = {
@@ -442,10 +516,15 @@ const LORE = {
 };
 
 export function loreOf(card) {
-  return (
-    LORE[card?.id] || {
-      kind: `Champion — ${card?.title || 'Relic'}`,
-      flavor: card?.title || 'A champion bound to the ninefold grid.',
-    }
-  );
+  const catalog = card?.id ? cardById(card.id) : null;
+  const view = { ...catalog, ...card };
+  const stored = LORE[view?.id];
+  const left = tierLabel(view);
+  const right = stored?.kind?.includes(' — ')
+    ? stored.kind.split(' — ')[1]
+    : stored?.kind || view?.title || 'Relic';
+  return {
+    kind: `${left} — ${right}`,
+    flavor: stored?.flavor || view?.title || 'A champion bound to the ninefold grid.',
+  };
 }

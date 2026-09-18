@@ -1,4 +1,4 @@
-import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord } from './cards.js';
+import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord, levelOf } from './cards.js';
 import { creatureSVG, cardBackSVG, elementGlyph } from './art.js';
 
 const ARROW_SVG = `<svg class="arr-svg" viewBox="0 0 24 20" aria-hidden="true"><path d="M12 1.6 L22.8 18.6 H1.2 Z"/></svg>`;
@@ -30,15 +30,19 @@ export function renderCard(card, options = {}) {
   const atk = hexDigit(card.attack);
   const pdef = hexDigit(card.pdef);
   const mdef = hexDigit(card.mdef);
-  const kindParts = lore.kind.includes(' — ') ? lore.kind.split(' — ') : ['Champion', lore.kind];
+  const level = levelOf(card);
+  const kindParts = lore.kind.includes(' — ') ? lore.kind.split(' — ') : ['Beast', lore.kind];
 
-  return `<article class="tm-card owner-${owner} rarity-${rarity} frame-${frame}${selected}${captured}${placed}" data-instance="${card.instanceId}" data-id="${card.id}" data-rarity="${rarity}">
+  return `<article class="tm-card owner-${owner} rarity-${rarity} frame-${frame}${selected}${captured}${placed}" data-instance="${card.instanceId}" data-id="${card.id}" data-rarity="${rarity}" data-level="${level}">
     <div class="tm-bevel">
       <div class="tm-gilt">
         <div class="tm-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <header class="tm-titlebar">
           <h3 class="tm-card-name">${escapeText(card.name)}</h3>
-          <div class="tm-cost">${el}</div>
+          <div class="tm-cost">
+            <div class="tm-level" title="Level ${level}">${level}</div>
+            ${el}
+          </div>
         </header>
         <div class="tm-portrait">
           <div class="tm-art">${creatureSVG(card.art, uid)}</div>
