@@ -250,6 +250,7 @@ button {
 .cell {
   min-height: 0;
   min-width: 0;
+  overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 30%, rgba(90, 58, 24, 0.35), transparent 70%),
     linear-gradient(180deg, rgba(62, 36, 14, 0.55), rgba(28, 14, 6, 0.7));
