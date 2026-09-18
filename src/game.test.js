@@ -284,8 +284,7 @@ test('rendered cards keep four side ranks and real English flavor', () => {
   assert.match(html, /class="rk r">5</);
   assert.match(html, /class="rk b">7</);
   assert.match(html, /class="rk l">8</);
-  assert.doesNotMatch(html, /class="arr /);
-  assert.doesNotMatch(html, /tm-arrows/);
+  assert.match(html, /class="tm-ranks"/);
   assert.match(html, /frame-ivory/);
   assert.match(html, /owner-player/);
   assert.doesNotMatch(html, /[\uE000-\uF8FF]/);
@@ -316,6 +315,19 @@ test('every roster card sits inside its level band', () => {
       `${card.id} total ${total} not in ${band.totalMin}–${band.totalMax}`,
     );
     assert.ok(peak <= band.maxRank, `${card.id} rank ${peak} exceeds ${band.maxRank}`);
+  }
+});
+
+test('roster cards only store four side ranks', () => {
+  const allowed = new Set(['id', 'name', 'title', 'level', 'top', 'right', 'bottom', 'left', 'element', 'art']);
+  for (const card of ROSTER) {
+    for (const key of Object.keys(card)) {
+      assert.ok(allowed.has(key), `${card.id} has unexpected field ${key}`);
+    }
+    for (const side of ['top', 'right', 'bottom', 'left']) {
+      assert.equal(typeof card[side], 'number', `${card.id}.${side}`);
+      assert.ok(card[side] >= 1 && card[side] <= 10, `${card.id}.${side}=${card[side]}`);
+    }
   }
 });
 
