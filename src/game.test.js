@@ -5,14 +5,13 @@ import {
   placeCard,
   scores,
   resolveBattle,
+  compareSides,
   mulberry32,
   emptyCells,
   elementModifier,
-  typeModifier,
-  hasOpposingArrow,
   DECK_QUOTA,
 } from './game.js';
-import { DIR, rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf, TYPE_BEATS } from './cards.js';
+import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf } from './cards.js';
 import { chooseAiMove } from './ai.js';
 import { renderCard, renderCardBack, renderElementWheel } from './ui.js';
 import {
@@ -35,11 +34,10 @@ function card(partial) {
     id: 'test',
     name: partial.name || 'Test',
     title: 'Trial',
-    attack: 8,
-    type: 'P',
-    pdef: 2,
-    mdef: 2,
-    arrows: DIR.E,
+    top: 8,
+    right: 2,
+    bottom: 2,
+    left: 2,
     element: null,
     art: 'drake',
     owner: 'player',
@@ -53,7 +51,7 @@ function stateWith(board, extra = {}) {
     seed: 1,
     phase: extra.phase || 'player',
     board,
-    player: { deck: [], hand: extra.playerHand || [card({ instanceId: 10, arrows: DIR.E })] },
+    player: { deck: [], hand: extra.playerHand || [card({ instanceId: 10, right: 8 })] },
     ai: { deck: [], hand: extra.aiHand || [] },
     events: [],
     winner: null,
@@ -72,92 +70,85 @@ test('new match draws five cards each and starts on the player turn', () => {
   assert.equal(scores(match).ai, 5);
 });
 
-test('opposing arrow detection uses the vector from the defending card', () => {
-  const west = card({ arrows: DIR.W });
-  const east = card({ arrows: DIR.E });
-  assert.equal(hasOpposingArrow(west, 1, 0), true);
-  assert.equal(hasOpposingArrow(east, 1, 0), false);
-  assert.equal(hasOpposingArrow(east, 0, 1), true);
-});
-
-test('unprotected arrows capture immediately', () => {
+test('orthogonal neighbors compare touching sides only', () => {
   const enemy = card({
     name: 'Foe',
     owner: 'ai',
     instanceId: 2,
-    arrows: DIR.N,
-    attack: 9,
-    pdef: 9,
+    left: 3,
+    right: 9,
+    top: 9,
+    bottom: 9,
   });
-  const st = stateWith([null, enemy, null, null, null, null, null, null, null]);
+  const st = stateWith([null, enemy, null, null, null, null, null, null, null], {
+    playerHand: [card({ instanceId: 10, right: 6, left: 1, top: 1, bottom: 1 })],
+  });
   const result = placeCard(st, 'player', 0, 0);
   assert.equal(result.ok, true);
   assert.equal(st.board[1].owner, 'player');
-  assert.ok(result.events.some((e) => e.type === 'capture' && e.kind === 'arrow'));
+  assert.ok(result.events.some((e) => e.type === 'battle' && e.summary === '6 vs 3 — capture'));
 });
 
-test('opposing arrows trigger a battle and a high attack can capture', () => {
+test('a lower touching rank does not capture, and does not counter-capture', () => {
   const enemy = card({
     name: 'Wall',
     owner: 'ai',
     instanceId: 2,
-    arrows: DIR.W,
-    attack: 1,
-    type: 'P',
-    pdef: 0,
-    mdef: 0,
+    left: 9,
+    right: 1,
+    top: 1,
+    bottom: 1,
   });
   const st = stateWith([null, enemy, null, null, null, null, null, null, null], {
-    playerHand: [card({ attack: 15, type: 'P', pdef: 8, mdef: 8, arrows: DIR.E })],
-    rng: () => 0,
+    playerHand: [card({ instanceId: 10, right: 4, left: 8, top: 8, bottom: 8 })],
   });
   const result = placeCard(st, 'player', 0, 0);
   assert.equal(result.ok, true);
-  assert.ok(result.events.some((e) => e.type === 'battle'));
-  assert.equal(st.board[1].owner, 'player');
+  assert.equal(st.board[1].owner, 'ai');
+  assert.equal(st.board[0].owner, 'player');
+  assert.ok(result.events.some((e) => e.type === 'battle' && e.attackerWins === false));
+  assert.equal(result.events.some((e) => e.type === 'counter'), false);
 });
 
-test('losing a clash counter-captures the placed card', () => {
+test('ties do not capture', () => {
   const enemy = card({
-    name: 'Fortress',
+    name: 'Even',
     owner: 'ai',
     instanceId: 2,
-    arrows: DIR.W,
-    attack: 1,
-    type: 'P',
-    pdef: 15,
-    mdef: 15,
+    left: 5,
+    right: 1,
+    top: 1,
+    bottom: 1,
   });
   const st = stateWith([null, enemy, null, null, null, null, null, null, null], {
-    playerHand: [card({ attack: 0, type: 'P', pdef: 0, mdef: 0, arrows: DIR.E })],
-    rng: () => 0,
+    playerHand: [card({ instanceId: 10, right: 5, left: 1, top: 1, bottom: 1 })],
   });
-  const result = placeCard(st, 'player', 0, 0);
-  assert.equal(result.ok, true);
-  assert.equal(st.board[0].owner, 'ai');
-  assert.ok(result.events.some((e) => e.type === 'counter' || (e.type === 'battle' && !e.attackerWins)));
+  placeCard(st, 'player', 0, 0);
+  assert.equal(st.board[1].owner, 'ai');
 });
 
-test('combo flips a second enemy pointed at by the captured card', () => {
+test('combo chains from a captured card into another neighbor', () => {
   const first = card({
     name: 'Link',
     owner: 'ai',
     instanceId: 2,
-    arrows: DIR.S,
-    attack: 0,
-    pdef: 0,
-    mdef: 0,
+    left: 2,
+    bottom: 7,
+    top: 1,
+    right: 1,
   });
   const second = card({
     name: 'Tail',
     owner: 'ai',
     instanceId: 3,
-    arrows: 0,
-    attack: 0,
-    pdef: 8,
-    mdef: 8,
+    top: 3,
+    left: 9,
+    right: 9,
+    bottom: 9,
   });
-  const st = stateWith([null, first, null, null, second, null, null, null, null]);
+  const st = stateWith([null, first, null, null, second, null, null, null, null], {
+    playerHand: [card({ instanceId: 10, right: 8, left: 1, top: 1, bottom: 1 })],
+  });
   placeCard(st, 'player', 0, 0);
   assert.equal(st.board[1].owner, 'player');
   assert.equal(st.board[4].owner, 'player');
@@ -166,17 +157,17 @@ test('combo flips a second enemy pointed at by the captured card', () => {
 test('filling the board decides a winner', () => {
   const st = stateWith(Array(9).fill(null), {
     playerHand: [
-      card({ instanceId: 11, arrows: 0 }),
-      card({ instanceId: 12, arrows: 0 }),
-      card({ instanceId: 13, arrows: 0 }),
-      card({ instanceId: 14, arrows: 0 }),
-      card({ instanceId: 15, arrows: 0 }),
+      card({ instanceId: 11 }),
+      card({ instanceId: 12 }),
+      card({ instanceId: 13 }),
+      card({ instanceId: 14 }),
+      card({ instanceId: 15 }),
     ],
     aiHand: [
-      card({ owner: 'ai', instanceId: 21, arrows: 0 }),
-      card({ owner: 'ai', instanceId: 22, arrows: 0 }),
-      card({ owner: 'ai', instanceId: 23, arrows: 0 }),
-      card({ owner: 'ai', instanceId: 24, arrows: 0 }),
+      card({ owner: 'ai', instanceId: 21 }),
+      card({ owner: 'ai', instanceId: 22 }),
+      card({ owner: 'ai', instanceId: 23 }),
+      card({ owner: 'ai', instanceId: 24 }),
     ],
   });
   let turn = 'player';
@@ -193,56 +184,29 @@ test('filling the board decides a winner', () => {
   assert.equal(s.player + s.ai, 9);
 });
 
-test('element wheel grants a modifier', () => {
-  assert.equal(elementModifier({ element: 'fire' }, { element: 'ice' }), 2);
-  assert.equal(elementModifier({ element: 'ice' }, { element: 'fire' }), -2);
+test('element wheel grants a ±1 modifier', () => {
+  assert.equal(elementModifier({ element: 'fire' }, { element: 'ice' }), 1);
+  assert.equal(elementModifier({ element: 'ice' }, { element: 'fire' }), -1);
   assert.equal(elementModifier({ element: 'fire' }, { element: 'earth' }), 0);
   assert.equal(elementModifier({ element: null }, { element: 'ice' }), 0);
 });
 
-test('battle types cycle A beats X beats P beats M beats A', () => {
-  assert.equal(TYPE_BEATS.A, 'X');
-  assert.equal(TYPE_BEATS.X, 'P');
-  assert.equal(TYPE_BEATS.P, 'M');
-  assert.equal(TYPE_BEATS.M, 'A');
-  assert.equal(typeModifier({ type: 'A' }, { type: 'X' }), 1);
-  assert.equal(typeModifier({ type: 'M' }, { type: 'A' }), 1);
-  assert.equal(typeModifier({ type: 'X' }, { type: 'P' }), 1);
-  assert.equal(typeModifier({ type: 'P' }, { type: 'M' }), 1);
-  assert.equal(typeModifier({ type: 'A' }, { type: 'A' }), 0);
-  assert.equal(typeModifier({ type: 'A' }, { type: 'P' }), 0);
-  assert.equal(typeModifier({ type: 'X' }, { type: 'M' }), 0);
-  const boosted = resolveBattle(
-    card({ attack: 5, type: 'A', element: null }),
-    card({ attack: 5, type: 'X', element: null, pdef: 5, mdef: 5 }),
-    mulberry32(3),
+test('element ±1 never lets a 5 beat a 7', () => {
+  const battle = compareSides(
+    card({ right: 5, element: 'fire' }),
+    card({ left: 7, element: 'ice' }),
+    'right',
   );
-  assert.equal(boosted.typeMod, 1);
-  assert.equal(boosted.atkStat, 6);
-  const even = resolveBattle(
-    card({ attack: 5, type: 'P', element: null }),
-    card({ attack: 5, type: 'P', element: null, pdef: 5, mdef: 5 }),
-    mulberry32(3),
-  );
-  assert.equal(even.typeMod, 0);
-  assert.equal(even.atkStat, 5);
+  assert.equal(battle.elementMod, 1);
+  assert.equal(battle.attackerWins, false);
 });
 
-test('assault type targets the lowest defender stat', () => {
-  const battle = resolveBattle(
-    card({ attack: 5, type: 'A' }),
-    card({ attack: 9, pdef: 8, mdef: 1 }),
-    mulberry32(4),
-  );
-  assert.equal(battle.defStat, 1);
-});
-
-test('a 6 never loses to a 3, even vs M and a bad element', () => {
+test('a 6 never loses to a 3, even vs a bad element', () => {
   for (let seed = 0; seed < 24; seed += 1) {
-    const battle = resolveBattle(
-      card({ attack: 6, type: 'P', element: 'fire' }),
-      card({ attack: 2, type: 'M', pdef: 3, mdef: 9, element: 'water' }),
-      mulberry32(seed),
+    const battle = compareSides(
+      card({ right: 6, element: 'fire' }),
+      card({ left: 3, element: 'water' }),
+      'right',
     );
     assert.equal(battle.attackerWins, true, `seed ${seed}`);
     assert.equal(battle.summary, '6 vs 3 — capture');
@@ -280,16 +244,15 @@ test('frame color and lore are original English chrome, not battle math', () => 
   assert.equal(loreOf({ title: 'Trial' }).kind, 'Beast — Trial');
 });
 
-test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
+test('rendered cards keep four side ranks and real English flavor', () => {
   const html = renderCard({
     id: 'iron-vow',
     name: 'Iron Vow',
     title: 'Oath Paladin',
-    attack: 7,
-    type: 'P',
-    pdef: 9,
-    mdef: 4,
-    arrows: DIR.N | DIR.S,
+    top: 8,
+    right: 5,
+    bottom: 7,
+    left: 8,
     element: 'holy',
     art: 'paladin',
     owner: 'player',
@@ -302,12 +265,12 @@ test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
   assert.match(html, />Warlord</);
   assert.match(html, /data-level="6"/);
   assert.match(html, /class="tm-level"[^>]*>6</);
-  assert.match(html, /class="arr N"/);
-  assert.match(html, /class="arr S"/);
-  assert.match(html, /<span class="atk">7<\/span>/);
-  assert.match(html, /<span class="typ">P<\/span>/);
-  assert.match(html, /<span class="pd">9<\/span>/);
-  assert.match(html, /<span class="md">4<\/span>/);
+  assert.match(html, /class="rk t">8</);
+  assert.match(html, /class="rk r">5</);
+  assert.match(html, /class="rk b">7</);
+  assert.match(html, /class="rk l">8</);
+  assert.doesNotMatch(html, /class="arr /);
+  assert.doesNotMatch(html, /tm-arrows/);
   assert.match(html, /frame-ivory/);
   assert.match(html, /owner-player/);
   assert.doesNotMatch(html, /[\uE000-\uF8FF]/);
@@ -360,16 +323,13 @@ test('player and AI starter decks share the same level mix and no cards', () => 
   }
 });
 
-test('elemental wheel HUD lists every element and the type cycle', () => {
+test('elemental wheel HUD lists every element and no type cycle', () => {
   const html = renderElementWheel();
   assert.match(html, /Elemental Wheel/);
   for (const el of ['fire', 'ice', 'water', 'wind', 'earth', 'thunder', 'holy', 'dark', 'poison']) {
     assert.match(html, new RegExp(`el-${el}`));
   }
-  assert.match(html, /class="type-pip">A</);
-  assert.match(html, /class="type-pip">X</);
-  assert.match(html, /class="type-pip">P</);
-  assert.match(html, /class="type-pip">M</);
+  assert.doesNotMatch(html, /type-pip/);
 });
 
 test('trade rules take one, three, or all of the wager', () => {
@@ -455,8 +415,8 @@ test('createMatch can wager custom decks and skip empty hands', () => {
 test('preferUltimates floats a boss signature first', () => {
   const sorted = preferUltimates(
     [
-      { id: 'ember-drake', level: 1, attack: 5, pdef: 4, mdef: 3 },
-      { id: 'hellforge', level: 10, attack: 10, pdef: 8, mdef: 9 },
+      { id: 'ember-drake', level: 1, top: 5, right: 5, bottom: 2, left: 3 },
+      { id: 'hellforge', level: 10, top: 10, right: 9, bottom: 8, left: 8 },
     ],
     ['hellforge'],
   );

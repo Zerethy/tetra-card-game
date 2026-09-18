@@ -697,7 +697,3 @@ export function elementGlyph(element) {
   };
   return icons[element] || '';
 }
-
-export function arrowGlyph(dir) {
-  return `<svg class="arr-svg" viewBox="0 0 24 20" aria-hidden="true"><path d="M12 1.5 L22.5 18.5 H1.5 Z"/></svg>`;
-}

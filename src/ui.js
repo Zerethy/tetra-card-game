@@ -1,7 +1,5 @@
-import { DIRECTIONS, hexDigit, rarityOf, frameOf, loreOf, typeWord, levelOf, ELEMENT_RINGS, TYPE_CYCLE, cardById } from './cards.js';
+import { hexDigit, rarityOf, frameOf, loreOf, levelOf, ELEMENT_RINGS, cardById, totalValue } from './cards.js';
 import { creatureSVG, cardBackSVG, elementGlyph } from './art.js';
-
-const ARROW_SVG = `<svg class="arr-svg" viewBox="0 0 24 20" aria-hidden="true"><path d="M12 1.6 L22.8 18.6 H1.2 Z"/></svg>`;
 
 function escapeText(value) {
   return String(value ?? '')
@@ -9,6 +7,10 @@ function escapeText(value) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function rankDigit(card, side) {
+  return hexDigit(card[side] | 0);
 }
 
 export function renderCard(card, options = {}) {
@@ -21,15 +23,13 @@ export function renderCard(card, options = {}) {
   const selected = options.selected ? ' selected' : '';
   const captured = options.captured ? ' just-captured' : '';
   const placed = options.placed ? ' just-placed' : '';
-  const arrows = DIRECTIONS.map((dir) =>
-    card.arrows & dir.bit ? `<span class="arr ${dir.key}" title="${dir.key}">${ARROW_SVG}</span>` : '',
-  ).join('');
   const el = card.element
     ? `<div class="tm-el el-${card.element}" title="${escapeText(card.element)}"><span class="el-face">${elementGlyph(card.element)}</span></div>`
     : `<div class="tm-el el-none" title="No element"></div>`;
-  const atk = hexDigit(card.attack);
-  const pdef = hexDigit(card.pdef);
-  const mdef = hexDigit(card.mdef);
+  const t = rankDigit(card, 'top');
+  const r = rankDigit(card, 'right');
+  const b = rankDigit(card, 'bottom');
+  const l = rankDigit(card, 'left');
   const level = levelOf(card);
   const kindParts = lore.kind.includes(' — ') ? lore.kind.split(' — ') : ['Beast', lore.kind];
 
@@ -47,24 +47,24 @@ export function renderCard(card, options = {}) {
         </header>
         <div class="tm-portrait">
           <div class="tm-art">${creatureSVG(card.art, uid)}</div>
-          <div class="tm-stats" aria-label="Attack ${atk}, type ${card.type}, physical ${pdef}, magical ${mdef}">
-            <span class="atk">${atk}</span>
-            <span class="mid"><span class="typ">${card.type}</span><span class="pd">${pdef}</span></span>
-            <span class="md">${mdef}</span>
+          <div class="tm-ranks" aria-label="Top ${t}, Right ${r}, Bottom ${b}, Left ${l}">
+            <span class="rk t">${t}</span>
+            <span class="rk r">${r}</span>
+            <span class="rk b">${b}</span>
+            <span class="rk l">${l}</span>
           </div>
           <div class="tm-sheen" aria-hidden="true"></div>
         </div>
         <p class="tm-typeline"><span>${escapeText(kindParts[0])}</span><span>${escapeText(kindParts[1] || '')}</span></p>
         <div class="tm-textbox">
           <p class="tm-flavor">${escapeText(lore.flavor)}</p>
-          <div class="tm-ptbox" title="Attack ${atk} ${card.type} · P.Def ${pdef} · M.Def ${mdef}">
-            <span class="pt-atk">${atk}<small>${card.type}</small></span>
-            <span class="pt-def">${pdef}/${mdef}</span>
+          <div class="tm-ptbox" title="Top ${t} · Right ${r} · Bottom ${b} · Left ${l} · total ${totalValue(card)}">
+            <span class="pt-atk">${t}/${r}</span>
+            <span class="pt-def">${b}/${l}</span>
           </div>
         </div>
       </div>
     </div>
-    <div class="tm-arrows">${arrows}</div>
   </article>`;
 }
 
@@ -78,10 +78,6 @@ export function renderCardBack(index, options = {}) {
       </div>
     </div>
   </article>`;
-}
-
-export function typeLabel(type) {
-  return typeWord(type);
 }
 
 const ELEMENT_TITLE = {
@@ -105,25 +101,21 @@ export function renderElementWheel() {
           return `<span class="wheel-node el-${el}" title="${ELEMENT_TITLE[el]} beats ${ELEMENT_TITLE[beats]}">${elementGlyph(el)}</span>`;
         })
         .join('')}
-      <span class="wheel-arrows" aria-hidden="true"></span>
     </div>`,
   ).join('');
-  const types = TYPE_CYCLE.map((t) => `<span class="type-pip">${t}</span>`).join('<i></i>');
   return `<p class="hud-wheel-title">Elemental Wheel</p>
     <div class="wheel-rings">${rings}</div>
-    <p class="hud-wheel-note">Clockwise beats · +2 Attack</p>
-    <p class="hud-type-cycle" title="Assault beats Flexible, Flexible beats Physical, Physical beats Magical, Magical beats Assault">${types}<i></i><span class="type-pip">${TYPE_CYCLE[0]}</span></p>
-    <p class="hud-wheel-note">Type cycle · +1 Attack</p>`;
+    <p class="hud-wheel-note">Clockwise beats · +1 on a side</p>
+    <p class="hud-wheel-note">Never reverses a gap of 2+</p>`;
 }
 
 export function clashFlashHtml(battle) {
+  if (!battle?.elementMod) return '';
   const bits = [];
-  if (battle.typeMod > 0) bits.push(`<span class="cf-type">${battle.attackerType} ▸ ${battle.defenderType} +1</span>`);
-  else if (battle.typeMod < 0) bits.push(`<span class="cf-type dim">${battle.attackerType} vs ${battle.defenderType} −1</span>`);
   if (battle.elementMod > 0) {
-    bits.push(`<span class="cf-el">${ELEMENT_TITLE[battle.attackerElement] || 'Element'} +2</span>`);
+    bits.push(`<span class="cf-el">${ELEMENT_TITLE[battle.attackerElement] || 'Element'} +1</span>`);
   } else if (battle.elementMod < 0) {
-    bits.push(`<span class="cf-el dim">${ELEMENT_TITLE[battle.defenderElement] || 'Element'} −2</span>`);
+    bits.push(`<span class="cf-el dim">${ELEMENT_TITLE[battle.defenderElement] || 'Element'} −1</span>`);
   }
   if (!bits.length) return '';
   return `<div class="clash-flash">${bits.join('')}</div>`;
@@ -152,7 +144,9 @@ export function renderUltimateStrip(boss, claimedIds = []) {
 
 function cardTemplate(id) {
   const t = cardById(id);
-  return t ? { ...t } : { id, name: id, title: '', attack: 0, type: 'P', pdef: 0, mdef: 0, arrows: 0, element: null, art: 'drake', level: 1 };
+  return t
+    ? { ...t }
+    : { id, name: id, title: '', top: 0, right: 0, bottom: 0, left: 0, element: null, art: 'drake', level: 1 };
 }
 
 export function renderClaimCard(card, options = {}) {
@@ -164,4 +158,3 @@ export function renderClaimCard(card, options = {}) {
     ${options.ultimate ? '<span class="ult-tag">Ultimate</span>' : ''}
   </button>`;
 }
-

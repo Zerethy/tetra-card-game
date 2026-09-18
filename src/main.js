@@ -346,14 +346,13 @@ function describeEvents(events) {
   for (const ev of events) {
     if (ev.type === 'battle') {
       const extras = [];
-      if (ev.typeMod) extras.push(`type ${ev.typeMod > 0 ? '+' : ''}${ev.typeMod}`);
       if (ev.elementMod) extras.push(`element ${ev.elementMod > 0 ? '+' : ''}${ev.elementMod}`);
       bits.push(
-        `${ev.attackerName} ${ev.rawAtk ?? ev.atkStat} vs ${ev.defLabel} ${ev.rawDef ?? ev.defStat} — ${ev.attackerWins ? 'capture' : 'held'}` +
+        `${ev.attackerName} ${ev.rawAtk ?? ev.atkStat} vs ${ev.rawDef ?? ev.defStat} — ${ev.attackerWins ? 'capture' : 'held'}` +
           (extras.length ? ` (${extras.join(', ')})` : ''),
       );
-    } else if (ev.type === 'capture' && ev.kind === 'arrow') {
-      bits.push(`${ev.name} had no answering arrow and flipped.`);
+    } else if (ev.type === 'capture') {
+      bits.push(`${ev.name} flips.`);
     } else if (ev.type === 'combo') {
       bits.push(`Combo! ${ev.name} is swept.`);
     } else if (ev.type === 'counter') {

@@ -1013,46 +1013,52 @@ button {
   100% { transform: translateX(130%); }
 }
 
-.tm-stats {
+.tm-ranks {
   position: absolute;
-  top: 5px;
-  left: 5px;
+  inset: 0;
   z-index: 7;
-  display: grid;
-  grid-template-columns: auto auto;
-  padding: 3px 5px 4px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, rgba(12, 10, 8, 0.86), rgba(6, 4, 2, 0.92));
-  border: 1px solid rgba(220, 200, 160, 0.7);
-  box-shadow:
-    0 2px 5px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 236, 180, 0.18);
+  pointer-events: none;
   font-family: Cinzel, serif;
   font-weight: 800;
   color: #f6f3ea;
-  line-height: 0.92;
-  text-shadow: 0 0 2px #000, 1px 1px 0 #000, -1px -1px 0 #000;
-  pointer-events: none;
+  text-shadow: 0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000;
 }
 
-.tm-stats .atk {
-  grid-column: 1 / 3;
-  font-size: clamp(10px, 8cqh, 18px);
+.tm-ranks .rk {
+  position: absolute;
+  min-width: 1.15em;
+  padding: 1px 4px 0;
+  text-align: center;
+  line-height: 1.05;
+  font-size: clamp(10px, 8.4cqh, 18px);
+  background: linear-gradient(180deg, rgba(12, 8, 24, 0.88), rgba(6, 2, 16, 0.94));
+  border: 1px solid rgba(230, 200, 255, 0.55);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 0 8px rgba(180, 60, 255, 0.25);
 }
 
-.tm-stats .mid {
-  display: flex;
-  gap: 2px;
-  font-size: clamp(8px, 6.4cqh, 14px);
+.tm-ranks .t {
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.tm-stats .typ {
-  color: #ffe27a;
+.tm-ranks .b {
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.tm-stats .md {
-  grid-column: 1;
-  font-size: clamp(8px, 6.4cqh, 14px);
+.tm-ranks .l {
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tm-ranks .r {
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .tm-el {
@@ -1167,87 +1173,9 @@ button {
   font-size: clamp(7px, 5.8cqh, 12px);
 }
 
-.tm-ptbox .pt-atk small {
-  font-size: 0.72em;
-  margin-left: 1px;
-  color: #ffe27a;
-}
-
 .tm-ptbox .pt-def {
   font-size: clamp(6px, 4.6cqh, 9px);
   color: #e8d8b0;
-}
-
-.tm-arrows {
-  position: absolute;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-}
-
-.arr {
-  position: absolute;
-  width: 15px;
-  height: 13px;
-  filter: drop-shadow(0 1px 1px #1a1008);
-}
-
-.arr .arr-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  fill: #ffd24a;
-  stroke: #3a2408;
-  stroke-width: 1.6;
-  stroke-linejoin: round;
-}
-
-.arr.N {
-  top: 1px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.arr.S {
-  bottom: 1px;
-  left: 50%;
-  transform: translateX(-50%) rotate(180deg);
-}
-
-.arr.E {
-  right: 1px;
-  top: 50%;
-  transform: translateY(-50%) rotate(90deg);
-}
-
-.arr.W {
-  left: 1px;
-  top: 50%;
-  transform: translateY(-50%) rotate(-90deg);
-}
-
-.arr.NE {
-  top: 7px;
-  right: 7px;
-  transform: rotate(45deg);
-}
-
-.arr.NW {
-  top: 7px;
-  left: 7px;
-  transform: rotate(-45deg);
-}
-
-.arr.SE {
-  bottom: 7px;
-  right: 7px;
-  transform: rotate(135deg);
-}
-
-.arr.SW {
-  bottom: 7px;
-  left: 7px;
-  transform: rotate(-135deg);
 }
 
 .cell .tm-card {

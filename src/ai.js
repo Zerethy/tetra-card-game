@@ -1,11 +1,4 @@
-import { emptyCells, placeCard, scores, arrowTargets, hasOpposingArrow, defenderStat, elementModifier, typeModifier, mulberry32 } from './game.js';
-
-function expectedBattle(attacker, defender) {
-  const def = defenderStat(attacker, defender).stat;
-  const raw = attacker.attack - def;
-  if (raw !== 0) return raw * 6;
-  return typeModifier(attacker, defender) + elementModifier(attacker, defender);
-}
+import { emptyCells, placeCard, scores, neighborsOf, compareSides, mulberry32 } from './game.js';
 
 function cloneForSim(state, salt) {
   const copy = structuredClone({ ...state, rng: undefined, events: [] });
@@ -27,20 +20,11 @@ function moveScore(state, owner, handIndex, cellIndex) {
   score += (myAfter - theirAfter) * 4;
 
   const card = state[owner].hand[handIndex];
-  const hits = arrowTargets(cellIndex, card.arrows);
-  let threats = 0;
-  let contested = 0;
-  for (const hit of hits) {
+  for (const hit of neighborsOf(cellIndex)) {
     const target = state.board[hit.index];
-    if (!target) continue;
-    if (target.owner === owner) continue;
-    threats += 1;
-    if (hasOpposingArrow(target, hit.index, cellIndex)) {
-      contested += 1;
-      score += expectedBattle(card, target);
-    } else {
-      score += 8;
-    }
+    if (!target || target.owner === owner) continue;
+    const battle = compareSides(card, target, hit.side);
+    score += battle.attackerWins ? 10 : -1;
   }
 
   if (cellIndex === 4) score += 3;
@@ -51,7 +35,6 @@ function moveScore(state, owner, handIndex, cellIndex) {
   if (sim.winner === owner) score += 40;
   if (sim.winner && sim.winner !== owner && sim.winner !== 'draw') score -= 40;
 
-  score += threats * 0.5 - contested * 0.25;
   score += sim.rng() * 1.6;
   return score;
 }

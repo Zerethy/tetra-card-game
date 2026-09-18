@@ -1,4 +1,4 @@
-import { DIRECTIONS, ELEMENT_BEATS, TYPE_BEATS, ROSTER, tierOf } from './cards.js';
+import { SIDES, ELEMENT_BEATS, ROSTER, tierOf, totalValue } from './cards.js';
 
 export const DECK_SIZE = 8;
 const HAND_SIZE = 5;
@@ -115,192 +115,104 @@ export function rcToCell(r, c) {
   return r * COLS + c;
 }
 
-export function arrowTargets(index, arrows) {
+export function neighborsOf(index) {
   const { r, c } = cellToRC(index);
   const hits = [];
-  for (const dir of DIRECTIONS) {
-    if (!(arrows & dir.bit)) continue;
-    const next = rcToCell(r + dir.dr, c + dir.dc);
-    if (next >= 0) hits.push({ index: next, dir });
+  for (const side of SIDES) {
+    const next = rcToCell(r + side.dr, c + side.dc);
+    if (next >= 0) hits.push({ index: next, side: side.key, opposite: side.opposite });
   }
   return hits;
 }
 
-export function hasOpposingArrow(card, fromIndex, toIndex) {
-  if (!card) return false;
-  const from = cellToRC(fromIndex);
-  const to = cellToRC(toIndex);
-  const dr = to.r - from.r;
-  const dc = to.c - from.c;
-  const dir = DIRECTIONS.find((d) => d.dr === dr && d.dc === dc);
-  if (!dir) return false;
-  return Boolean(card.arrows & dir.bit);
-}
-
-export function hexBand(displayed, rng) {
-  const n = Math.max(0, Math.min(15, displayed | 0));
-  return n * 16 + Math.floor(rng() * 16);
-}
-
-export function combatRoll(stat, rng) {
-  const actual = hexBand(stat, rng);
-  const reduction = Math.floor(rng() * (actual + 1));
-  return { actual, remainder: actual - reduction };
-}
-
-export function defenderStat(attacker, defender) {
-  switch (attacker.type) {
-    case 'P':
-      return { stat: defender.pdef, label: 'P.Def' };
-    case 'M':
-      return { stat: defender.mdef, label: 'M.Def' };
-    case 'X':
-      return defender.pdef <= defender.mdef
-        ? { stat: defender.pdef, label: 'P.Def (X)' }
-        : { stat: defender.mdef, label: 'M.Def (X)' };
-    case 'A': {
-      const stats = [
-        { stat: defender.attack, label: 'Atk (A)' },
-        { stat: defender.pdef, label: 'P.Def (A)' },
-        { stat: defender.mdef, label: 'M.Def (A)' },
-      ];
-      stats.sort((a, b) => a.stat - b.stat);
-      return stats[0];
-    }
-    default:
-      return { stat: defender.pdef, label: 'P.Def' };
-  }
-}
-
 export function elementModifier(attacker, defender) {
-  if (!attacker.element || !defender.element) return 0;
-  if (ELEMENT_BEATS[attacker.element] === defender.element) return 2;
-  if (ELEMENT_BEATS[defender.element] === attacker.element) return -2;
+  if (!attacker?.element || !defender?.element) return 0;
+  if (ELEMENT_BEATS[attacker.element] === defender.element) return 1;
+  if (ELEMENT_BEATS[defender.element] === attacker.element) return -1;
   return 0;
 }
 
-/** +1 printed Attack when the attacker’s type beats the defender’s. */
-export function typeModifier(attacker, defender) {
-  const a = attacker?.type;
-  const d = defender?.type;
-  if (!a || !d || a === d) return 0;
-  if (TYPE_BEATS[a] === d) return 1;
-  if (TYPE_BEATS[d] === a) return -1;
-  return 0;
-}
-
-export function resolveBattle(attacker, defender, rng) {
+/** Compare touching sides. Higher printed rank wins. Element is ±1 and cannot reverse a gap of 2+. */
+export function compareSides(attacker, defender, attackSide) {
+  const side = SIDES.find((s) => s.key === attackSide);
+  const opposite = side?.opposite || 'bottom';
+  const rawAtk = attacker[attackSide] | 0;
+  const rawDef = defender[opposite] | 0;
   const elementMod = elementModifier(attacker, defender);
-  const typeMod = typeModifier(attacker, defender);
-  const defInfo = defenderStat(attacker, defender);
-  const rawAtk = attacker.attack | 0;
-  const rawDef = defInfo.stat | 0;
-  const modifiedAtk = Math.max(0, Math.min(15, rawAtk + elementMod + typeMod));
-  const clearGap = rawAtk !== rawDef;
-  const usedAtk = clearGap ? rawAtk : modifiedAtk;
-  const attackerWins = clearGap ? rawAtk > rawDef : modifiedAtk > rawDef;
-  const atkRoll = { actual: usedAtk, remainder: usedAtk };
-  const defRoll = { actual: rawDef, remainder: rawDef };
-  void rng;
+  const usedAtk = rawAtk + elementMod;
+  const attackerWins = usedAtk > rawDef;
   return {
     attackerWins,
-    atkRoll,
-    defRoll,
-    atkStat: usedAtk,
-    defStat: rawDef,
     rawAtk,
     rawDef,
-    defLabel: defInfo.label,
-    elementMod: clearGap ? 0 : elementMod,
-    typeMod: clearGap ? 0 : typeMod,
-    attackerType: attacker.type,
-    defenderType: defender.type,
+    atkStat: usedAtk,
+    defStat: rawDef,
+    side: attackSide,
+    opposite,
+    elementMod,
     attackerElement: attacker.element || null,
     defenderElement: defender.element || null,
     summary: `${rawAtk} vs ${rawDef} — ${attackerWins ? 'capture' : 'held'}`,
   };
 }
 
-function opponentOf(owner) {
-  return owner === 'player' ? 'ai' : 'player';
-}
-
-function comboFrom(board, origin, owner, events) {
-  const card = board[origin];
-  if (!card) return;
-  for (const hit of arrowTargets(origin, card.arrows)) {
-    const target = board[hit.index];
-    if (target && target.owner !== owner) {
-      target.owner = owner;
-      events.push({
-        type: 'combo',
-        cell: hit.index,
-        name: target.name,
-        owner,
-      });
-    }
-  }
+/** Death Match / value compare: sum of the four sides. Element ±1 only on a tied sum. */
+export function resolveBattle(attacker, defender, rng) {
+  const rawAtk = totalValue(attacker);
+  const rawDef = totalValue(defender);
+  const tied = rawAtk === rawDef;
+  const elementMod = tied ? elementModifier(attacker, defender) : 0;
+  const usedAtk = rawAtk + elementMod;
+  const attackerWins = usedAtk > rawDef;
+  void rng;
+  return {
+    attackerWins,
+    atkStat: usedAtk,
+    defStat: rawDef,
+    rawAtk,
+    rawDef,
+    defLabel: 'total',
+    elementMod,
+    attackerElement: attacker.element || null,
+    defenderElement: defender.element || null,
+    summary: `${rawAtk} vs ${rawDef} — ${attackerWins ? 'capture' : 'held'}`,
+  };
 }
 
 export function resolveCaptures(state, placedIndex, owner) {
   const events = [];
   const board = state.board;
-  const placed = board[placedIndex];
-  if (!placed) return events;
+  if (!board[placedIndex]) return events;
 
-  const enemyHits = arrowTargets(placedIndex, placed.arrows).filter((hit) => {
-    const card = board[hit.index];
-    return card && card.owner !== owner;
-  });
-
-  const weak = [];
-  const contested = [];
-  for (const hit of enemyHits) {
-    if (hasOpposingArrow(board[hit.index], hit.index, placedIndex)) contested.push(hit);
-    else weak.push(hit);
-  }
-
-  const captured = [];
-  for (const hit of weak) {
-    board[hit.index].owner = owner;
-    captured.push(hit.index);
-    events.push({ type: 'capture', cell: hit.index, name: board[hit.index].name, owner, kind: 'arrow' });
-  }
-
-  let stillOurs = true;
-  for (const hit of contested) {
-    if (!stillOurs) break;
-    const defender = board[hit.index];
-    if (!defender || defender.owner === owner) continue;
-    const battle = resolveBattle(placed, defender, state.rng);
-    events.push({
-      type: 'battle',
-      attackerCell: placedIndex,
-      defenderCell: hit.index,
-      attackerName: placed.name,
-      defenderName: defender.name,
-      ...battle,
-    });
-    if (battle.attackerWins) {
-      defender.owner = owner;
-      captured.push(hit.index);
-      events.push({ type: 'capture', cell: hit.index, name: defender.name, owner, kind: 'battle' });
-      comboFrom(board, hit.index, owner, events);
-    } else {
-      placed.owner = opponentOf(owner);
-      stillOurs = false;
+  const queue = [{ index: placedIndex, kind: 'place' }];
+  while (queue.length) {
+    const { index: origin, kind } = queue.shift();
+    const card = board[origin];
+    if (!card || card.owner !== owner) continue;
+    for (const hit of neighborsOf(origin)) {
+      const defender = board[hit.index];
+      if (!defender || defender.owner === owner) continue;
+      const battle = compareSides(card, defender, hit.side);
       events.push({
-        type: 'counter',
-        cell: placedIndex,
-        name: placed.name,
-        owner: placed.owner,
+        type: 'battle',
+        attackerCell: origin,
+        defenderCell: hit.index,
+        attackerName: card.name,
+        defenderName: defender.name,
+        combo: kind === 'combo',
+        ...battle,
       });
-      comboFrom(board, placedIndex, placed.owner, events);
+      if (!battle.attackerWins) continue;
+      defender.owner = owner;
+      events.push({
+        type: kind === 'place' ? 'capture' : 'combo',
+        cell: hit.index,
+        name: defender.name,
+        owner,
+        kind: 'side',
+      });
+      queue.push({ index: hit.index, kind: 'combo' });
     }
-  }
-
-  if (stillOurs) {
-    for (const cell of captured) comboFrom(board, cell, owner, events);
   }
 
   return events;
