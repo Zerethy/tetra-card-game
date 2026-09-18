@@ -239,7 +239,8 @@ test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
   });
   assert.match(html, /Iron Vow/);
   assert.match(html, /The vow is older than the armor/);
-  assert.match(html, /Champion — Oath Paladin/);
+  assert.match(html, /Oath Paladin/);
+  assert.match(html, />Champion</);
   assert.match(html, /class="arr N"/);
   assert.match(html, /class="arr S"/);
   assert.match(html, /<span class="atk">7<\/span>/);

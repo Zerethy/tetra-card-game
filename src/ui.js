@@ -30,6 +30,7 @@ export function renderCard(card, options = {}) {
   const atk = hexDigit(card.attack);
   const pdef = hexDigit(card.pdef);
   const mdef = hexDigit(card.mdef);
+  const kindParts = lore.kind.includes(' — ') ? lore.kind.split(' — ') : ['Champion', lore.kind];
 
   return `<article class="tm-card owner-${owner} rarity-${rarity} frame-${frame}${selected}${captured}${placed}" data-instance="${card.instanceId}" data-id="${card.id}" data-rarity="${rarity}">
     <div class="tm-bevel">
@@ -48,7 +49,7 @@ export function renderCard(card, options = {}) {
           </div>
           <div class="tm-sheen" aria-hidden="true"></div>
         </div>
-        <p class="tm-typeline">${escapeText(lore.kind)} · ${typeWord(card.type)}</p>
+        <p class="tm-typeline"><span>${escapeText(kindParts[0])}</span><span>${escapeText(kindParts[1] || '')}</span></p>
         <div class="tm-textbox">
           <p class="tm-flavor">${escapeText(lore.flavor)}</p>
           <div class="tm-ptbox" title="Attack ${atk} ${card.type} · P.Def ${pdef} · M.Def ${mdef}">

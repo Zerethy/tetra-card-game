@@ -16,13 +16,13 @@ function rg(uid, id, cx, cy, r, stops) {
 
 function filters(uid) {
   return `
-    <radialGradient id="${uid}-vig" cx="50%" cy="34%" r="76%">
-      <stop offset="22%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#050208" stop-opacity=".72"/>
+    <radialGradient id="${uid}-vig" cx="50%" cy="36%" r="82%">
+      <stop offset="48%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#050208" stop-opacity=".38"/>
     </radialGradient>
-    <radialGradient id="${uid}-key" cx="38%" cy="18%" r="62%">
-      <stop offset="0%" stop-color="#fff6d4" stop-opacity=".42"/>
-      <stop offset="42%" stop-color="#ffd090" stop-opacity=".1"/>
+    <radialGradient id="${uid}-key" cx="40%" cy="20%" r="64%">
+      <stop offset="0%" stop-color="#fff6d4" stop-opacity=".5"/>
+      <stop offset="48%" stop-color="#ffd090" stop-opacity=".14"/>
       <stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
     <filter id="${uid}-bloom" x="-50%" y="-50%" width="200%" height="200%">
@@ -46,8 +46,8 @@ function wrap(uid, defs, body) {
   return `<svg class="creature" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>${defs}${filters(uid)}</defs>
     ${body}
-    <rect width="200" height="280" filter="url(#${uid}-blotch)" opacity=".5" style="mix-blend-mode:overlay" pointer-events="none"/>
-    <rect width="200" height="280" filter="url(#${uid}-grain)" opacity=".55" style="mix-blend-mode:soft-light" pointer-events="none"/>
+    <rect width="200" height="280" filter="url(#${uid}-blotch)" opacity=".28" style="mix-blend-mode:overlay" pointer-events="none"/>
+    <rect width="200" height="280" filter="url(#${uid}-grain)" opacity=".28" style="mix-blend-mode:soft-light" pointer-events="none"/>
     <rect width="200" height="280" fill="url(#${uid}-key)" pointer-events="none"/>
     <rect width="200" height="280" fill="url(#${uid}-vig)" pointer-events="none"/>
   </svg>`;
