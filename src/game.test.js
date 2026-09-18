@@ -14,7 +14,7 @@ import {
 } from './game.js';
 import { DIR, rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf, TYPE_BEATS } from './cards.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderElementWheel } from './ui.js';
+import { renderCard, renderCardBack, renderElementWheel } from './ui.js';
 
 function card(partial) {
   return {
@@ -285,6 +285,19 @@ test('rendered cards keep tetra stats, arrows, and real English flavor', () => {
   assert.match(html, /frame-ivory/);
   assert.match(html, /owner-player/);
   assert.doesNotMatch(html, /[\uE000-\uF8FF]/);
+});
+
+test('card backs are original purple-celestial Aetherbound art', () => {
+  const html = renderCardBack(0);
+  assert.match(html, /face-down/);
+  assert.match(html, /frame-celestial/);
+  assert.match(html, /card-back-art/);
+  assert.match(html, /AETHERBOUND/);
+  assert.doesNotMatch(html, /RAID|Raid|Plarium|Watcher/i);
+  assert.match(html, /owner-ai/);
+  const title = renderCardBack('title-0', { owner: 'none' });
+  assert.doesNotMatch(title, /owner-ai/);
+  assert.match(title, /frame-celestial/);
 });
 
 test('every roster card sits inside its level band', () => {

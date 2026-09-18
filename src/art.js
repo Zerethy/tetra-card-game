@@ -16,13 +16,17 @@ function rg(uid, id, cx, cy, r, stops) {
 
 function filters(uid) {
   return `
-    <radialGradient id="${uid}-vig" cx="50%" cy="36%" r="82%">
-      <stop offset="48%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#050208" stop-opacity=".38"/>
+    <radialGradient id="${uid}-vig" cx="50%" cy="36%" r="80%">
+      <stop offset="38%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#050208" stop-opacity=".55"/>
     </radialGradient>
-    <radialGradient id="${uid}-key" cx="40%" cy="20%" r="64%">
-      <stop offset="0%" stop-color="#fff6d4" stop-opacity=".5"/>
-      <stop offset="48%" stop-color="#ffd090" stop-opacity=".14"/>
+    <radialGradient id="${uid}-key" cx="36%" cy="16%" r="62%">
+      <stop offset="0%" stop-color="#f0d8a4" stop-opacity=".34"/>
+      <stop offset="42%" stop-color="#c89858" stop-opacity=".1"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="${uid}-moonkey" cx="78%" cy="10%" r="48%">
+      <stop offset="0%" stop-color="#a8c4e0" stop-opacity=".2"/>
       <stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
     <filter id="${uid}-bloom" x="-50%" y="-50%" width="200%" height="200%">
@@ -34,11 +38,11 @@ function filters(uid) {
     </filter>
     <filter id="${uid}-grain">
       <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="4" stitchTiles="stitch" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.24  0 0 0 0 0.18  0 0 0 0 0.1  0 0 0 0.55 0"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.18  0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0.5 0"/>
     </filter>
     <filter id="${uid}-blotch">
       <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="4" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.38  0 0 0 0 0.18  0 0 0 0.28 0"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.32  0 0 0 0 0.28  0 0 0 0.26 0"/>
     </filter>`;
 }
 
@@ -46,9 +50,11 @@ function wrap(uid, defs, body) {
   return `<svg class="creature" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>${defs}${filters(uid)}</defs>
     ${body}
-    <rect width="200" height="280" filter="url(#${uid}-blotch)" opacity=".28" style="mix-blend-mode:overlay" pointer-events="none"/>
-    <rect width="200" height="280" filter="url(#${uid}-grain)" opacity=".28" style="mix-blend-mode:soft-light" pointer-events="none"/>
+    <ellipse cx="100" cy="262" rx="128" ry="52" fill="#0c1014" opacity=".4" filter="url(#${uid}-soft)" pointer-events="none"/>
+    <rect width="200" height="280" filter="url(#${uid}-blotch)" opacity=".24" style="mix-blend-mode:overlay" pointer-events="none"/>
+    <rect width="200" height="280" filter="url(#${uid}-grain)" opacity=".32" style="mix-blend-mode:soft-light" pointer-events="none"/>
     <rect width="200" height="280" fill="url(#${uid}-key)" pointer-events="none"/>
+    <rect width="200" height="280" fill="url(#${uid}-moonkey)" pointer-events="none"/>
     <rect width="200" height="280" fill="url(#${uid}-vig)" pointer-events="none"/>
   </svg>`;
 }
@@ -61,7 +67,8 @@ function motes(color, pts) {
 
 function sky(uid, id = 'sky') {
   return `<rect width="200" height="280" fill="url(#${uid}-${id})"/>
-    <ellipse cx="94" cy="76" rx="92" ry="68" fill="#fff4d0" opacity=".16" filter="url(#${uid}-soft)"/>`;
+    <ellipse cx="94" cy="70" rx="90" ry="58" fill="#c8d4e8" opacity=".1" filter="url(#${uid}-soft)"/>
+    <ellipse cx="36" cy="208" rx="86" ry="44" fill="#12141c" opacity=".2" filter="url(#${uid}-soft)"/>`;
 }
 
 const ART = {
@@ -579,20 +586,100 @@ export function creatureSVG(artKey, uid) {
   return fn(uid);
 }
 
+function backStars() {
+  const pts = [
+    [24, 32, 0.9, 0.9], [46, 22, 0.55, 0.55], [68, 38, 0.7, 0.7], [88, 18, 0.45, 0.5],
+    [118, 26, 0.8, 0.75], [142, 20, 0.5, 0.45], [166, 36, 0.95, 0.85], [178, 58, 0.4, 0.4],
+    [18, 64, 0.5, 0.5], [34, 88, 0.7, 0.6], [58, 72, 0.4, 0.4], [172, 86, 0.65, 0.7],
+    [186, 110, 0.45, 0.45], [16, 122, 0.55, 0.5], [28, 156, 0.75, 0.65], [18, 196, 0.5, 0.5],
+    [42, 214, 0.6, 0.55], [62, 242, 0.8, 0.7], [88, 252, 0.45, 0.45], [122, 246, 0.7, 0.65],
+    [148, 228, 0.5, 0.5], [170, 208, 0.85, 0.75], [184, 176, 0.4, 0.4], [178, 148, 0.6, 0.55],
+    [154, 64, 0.35, 0.4], [76, 58, 0.4, 0.35], [132, 214, 0.35, 0.4], [48, 178, 0.4, 0.35],
+  ];
+  return pts
+    .map(([x, y, r, a]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#eef4ff" opacity="${a}"/>`)
+    .join('');
+}
+
 export function cardBackSVG(uid) {
-  return `<svg class="creature" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  const rays = [
+    [100, 78, 100, 98],
+    [100, 154, 100, 174],
+    [52, 126, 72, 126],
+    [128, 126, 148, 126],
+    [66, 92, 82, 108],
+    [134, 92, 118, 108],
+    [66, 160, 82, 144],
+    [134, 160, 118, 144],
+  ]
+    .map(([x1, y1, x2, y2]) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)
+    .join('');
+  const consto = [
+    [100, 58], [138, 74], [162, 110], [154, 156], [118, 186], [82, 186], [46, 156], [38, 110], [62, 74],
+  ];
+  const constLines = consto
+    .map((p, i) => {
+      const n = consto[(i + 1) % consto.length];
+      return `<line x1="${p[0]}" y1="${p[1]}" x2="${n[0]}" y2="${n[1]}"/>`;
+    })
+    .join('');
+  const constDots = consto
+    .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#f4f0ff"/>`)
+    .join('');
+
+  return `<svg class="creature card-back-art" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
-      ${g(uid, 'bk', '0', '0', '0', '1', [[0, '#5a3a18'], [50, '#2a180c'], [100, '#120804']])}
-      ${rg(uid, 'sg', '50%', '46%', '42%', [[0, '#ffe27a', 1], [100, '#8a6010', 0.15]])}
-      ${rg(uid, 'glow', '50%', '46%', '38%', [[0, '#e8c56b', 0.55], [100, '#e8c56b', 0]])}
+      ${g(uid, 'bk', '0', '0', '0', '1', [[0, '#1c0e38'], [42, '#2a1460'], [72, '#140828'], [100, '#080414']])}
+      ${rg(uid, 'neb', '38%', '32%', '58%', [[0, '#7a48c8', 0.55], [48, '#3a2088', 0.28], [100, '#140828', 0]])}
+      ${rg(uid, 'neb2', '78%', '70%', '46%', [[0, '#4060c8', 0.42], [100, '#140828', 0]])}
+      ${rg(uid, 'halo', '50%', '45%', '34%', [[0, '#d8c8ff', 0.55], [55, '#8a64d8', 0.18], [100, '#8a64d8', 0]])}
+      ${rg(uid, 'moon', '42%', '42%', '58%', [[0, '#f4f8ff', 1], [55, '#c8d4f0', 0.95], [100, '#8aa0d0', 0.7]])}
+      ${rg(uid, 'core', '50%', '50%', '50%', [[0, '#fff8ff', 1], [100, '#b090e8', 0.35]])}
+      <pattern id="${uid}-lat" width="16" height="16" patternUnits="userSpaceOnUse">
+        <path d="M8 1 L12 8 L8 15 L4 8 Z" fill="none" stroke="#9a80d8" stroke-width=".45" opacity=".28"/>
+      </pattern>
+      <filter id="${uid}-softb" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="1.4"/>
+      </filter>
+      <filter id="${uid}-glowb" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3.2" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
     </defs>
     <rect width="200" height="280" fill="url(#${uid}-bk)"/>
-    <rect x="10" y="10" width="180" height="260" rx="14" fill="none" stroke="#e8c56b" stroke-width="3"/>
-    <rect x="20" y="20" width="160" height="240" rx="10" fill="none" stroke="#8a6a30" stroke-width="1.5"/>
-    <circle cx="100" cy="128" r="62" fill="url(#${uid}-glow)"/>
-    <circle cx="100" cy="128" r="50" fill="none" stroke="#e8c56b" stroke-width="2.4"/>
-    <path d="M100 72 L114 116 L160 116 L122 144 L136 190 L100 162 L64 190 L78 144 L40 116 L86 116 Z" fill="url(#${uid}-sg)" stroke="#5a4010" stroke-width="2"/>
-    <text x="100" y="228" text-anchor="middle" fill="#e8c56b" font-size="13" font-family="Cinzel, serif" letter-spacing="2">AETHERBOUND</text>
+    <rect width="200" height="280" fill="url(#${uid}-neb)"/>
+    <rect width="200" height="280" fill="url(#${uid}-neb2)"/>
+    <rect width="200" height="280" fill="url(#${uid}-lat)"/>
+    ${backStars()}
+    <g fill="none" stroke="#c8b8f4" stroke-width="0.7" opacity=".55">${constLines}</g>
+    ${constDots}
+    <circle cx="100" cy="126" r="58" fill="url(#${uid}-halo)" filter="url(#${uid}-softb)"/>
+    <circle cx="100" cy="126" r="46" fill="none" stroke="#d8ccf8" stroke-width="1.7"/>
+    <circle cx="100" cy="126" r="38" fill="none" stroke="#8a70c8" stroke-width="0.8" opacity=".85"/>
+    <g fill="none" stroke="#e8dcff" stroke-width="1.6" stroke-linecap="round" filter="url(#${uid}-glowb)">${rays}</g>
+    <path d="M114 108 A20 20 0 1 0 114 146 A14 14 0 1 1 114 108 Z" fill="url(#${uid}-moon)" stroke="#dce6f8" stroke-width="1.1"/>
+    <circle cx="100" cy="126" r="7.5" fill="url(#${uid}-core)" stroke="#e8d8ff" stroke-width="1.1"/>
+    <path d="M100 116 L107 126 L100 136 L93 126 Z" fill="#f8f4ff" opacity=".9"/>
+    <path d="M70 168 C86 176 114 176 130 168 C122 184 78 184 70 168 Z" fill="none" stroke="#8a70b8" stroke-width="1.2" opacity=".7"/>
+    <path d="M78 170 C88 186 80 198 74 206" fill="none" stroke="#6a5088" stroke-width="1.1"/>
+    <path d="M122 170 C112 186 120 198 126 206" fill="none" stroke="#6a5088" stroke-width="1.1"/>
+    <path d="M74 206 L70 198 L78 200 Z" fill="#8a70b0"/>
+    <path d="M126 206 L130 198 L122 200 Z" fill="#8a70b0"/>
+    <rect x="9" y="9" width="182" height="262" rx="12" fill="none" stroke="#c8b4f0" stroke-width="2.4"/>
+    <rect x="16" y="16" width="168" height="248" rx="9" fill="none" stroke="#6a4898" stroke-width="1.1"/>
+    <path d="M22 48 L22 22 L48 22" fill="none" stroke="#e0d4ff" stroke-width="1.6"/>
+    <path d="M178 48 L178 22 L152 22" fill="none" stroke="#e0d4ff" stroke-width="1.6"/>
+    <path d="M22 232 L22 258 L48 258" fill="none" stroke="#e0d4ff" stroke-width="1.6"/>
+    <path d="M178 232 L178 258 L152 258" fill="none" stroke="#e0d4ff" stroke-width="1.6"/>
+    <path d="M30 22 L36 30 L42 22" fill="none" stroke="#b090e0" stroke-width="1.1"/>
+    <path d="M170 22 L164 30 L158 22" fill="none" stroke="#b090e0" stroke-width="1.1"/>
+    <path d="M30 258 L36 250 L42 258" fill="none" stroke="#b090e0" stroke-width="1.1"/>
+    <path d="M170 258 L164 250 L158 258" fill="none" stroke="#b090e0" stroke-width="1.1"/>
+    <circle cx="22" cy="22" r="2.2" fill="#e8dcff"/>
+    <circle cx="178" cy="22" r="2.2" fill="#e8dcff"/>
+    <circle cx="22" cy="258" r="2.2" fill="#e8dcff"/>
+    <circle cx="178" cy="258" r="2.2" fill="#e8dcff"/>
+    <text x="100" y="236" text-anchor="middle" fill="#d4c8f0" font-size="9" font-family="Cinzel, serif" letter-spacing="3.2">AETHERBOUND</text>
   </svg>`;
 }
 

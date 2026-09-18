@@ -24,6 +24,7 @@ const els = {
   side: document.getElementById('side-cards'),
   again: document.getElementById('again-btn'),
   wheel: document.getElementById('hud-wheel'),
+  titleDeck: document.getElementById('title-deck'),
 };
 
 let match = null;
@@ -283,3 +284,9 @@ els.closeHelp.addEventListener('click', () => els.help.classList.add('hidden'));
 els.help.addEventListener('click', (event) => {
   if (event.target === els.help) els.help.classList.add('hidden');
 });
+
+if (els.titleDeck) {
+  els.titleDeck.innerHTML = [0, 1, 2]
+    .map((i) => renderCardBack(`title-${i}`, { owner: 'none' }))
+    .join('');
+}

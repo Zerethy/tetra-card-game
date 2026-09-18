@@ -37,6 +37,7 @@ export function renderCard(card, options = {}) {
     <div class="tm-bevel">
       <div class="tm-gilt">
         <div class="tm-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="tm-runes" aria-hidden="true"></div>
         <header class="tm-titlebar">
           <h3 class="tm-card-name">${escapeText(card.name)}</h3>
           <div class="tm-cost">
@@ -67,10 +68,12 @@ export function renderCard(card, options = {}) {
   </article>`;
 }
 
-export function renderCardBack(index) {
-  return `<article class="tm-card owner-ai face-down rarity-rare frame-bronze" data-back="${index}">
+export function renderCardBack(index, options = {}) {
+  const owner = options.owner === 'none' ? '' : ` owner-${options.owner || 'ai'}`;
+  return `<article class="tm-card${owner} face-down rarity-rare frame-celestial" data-back="${index}">
     <div class="tm-bevel">
       <div class="tm-gilt">
+        <div class="tm-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <div class="tm-art tm-art-full">${cardBackSVG(`back-${index}`)}</div>
       </div>
     </div>
