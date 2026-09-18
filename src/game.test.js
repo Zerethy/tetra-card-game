@@ -191,14 +191,29 @@ test('element wheel grants a ±1 modifier', () => {
   assert.equal(elementModifier({ element: null }, { element: 'ice' }), 0);
 });
 
-test('element ±1 never lets a 5 beat a 7', () => {
-  const battle = compareSides(
+test('element is a tie-break only and never overturns a printed gap', () => {
+  const gap = compareSides(
     card({ right: 5, element: 'fire' }),
     card({ left: 7, element: 'ice' }),
     'right',
   );
-  assert.equal(battle.elementMod, 1);
-  assert.equal(battle.attackerWins, false);
+  assert.equal(gap.elementMod, 0);
+  assert.equal(gap.attackerWins, false);
+  const sixVsFive = compareSides(
+    card({ right: 6, element: 'fire' }),
+    card({ left: 5, element: 'water' }),
+    'right',
+  );
+  assert.equal(sixVsFive.elementMod, 0);
+  assert.equal(sixVsFive.attackerWins, true);
+  assert.equal(sixVsFive.summary, '6 vs 5 — capture');
+  const tied = compareSides(
+    card({ right: 6, element: 'fire' }),
+    card({ left: 6, element: 'ice' }),
+    'right',
+  );
+  assert.equal(tied.elementMod, 1);
+  assert.equal(tied.attackerWins, true);
 });
 
 test('a 6 never loses to a 3, even vs a bad element', () => {

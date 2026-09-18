@@ -105,8 +105,8 @@ export function renderElementWheel() {
   ).join('');
   return `<p class="hud-wheel-title">Elemental Wheel</p>
     <div class="wheel-rings">${rings}</div>
-    <p class="hud-wheel-note">Clockwise beats · +1 on a side</p>
-    <p class="hud-wheel-note">Never reverses a gap of 2+</p>`;
+    <p class="hud-wheel-note">Clockwise beats · tie-break +1</p>
+    <p class="hud-wheel-note">Never overturns a number gap</p>`;
 }
 
 export function clashFlashHtml(battle) {

@@ -132,13 +132,14 @@ export function elementModifier(attacker, defender) {
   return 0;
 }
 
-/** Compare touching sides. Higher printed rank wins. Element is ±1 and cannot reverse a gap of 2+. */
+/** Compare touching sides. Higher printed rank wins. Element is a tie-break only. */
 export function compareSides(attacker, defender, attackSide) {
   const side = SIDES.find((s) => s.key === attackSide);
   const opposite = side?.opposite || 'bottom';
   const rawAtk = attacker[attackSide] | 0;
   const rawDef = defender[opposite] | 0;
-  const elementMod = elementModifier(attacker, defender);
+  const tied = rawAtk === rawDef;
+  const elementMod = tied ? elementModifier(attacker, defender) : 0;
   const usedAtk = rawAtk + elementMod;
   const attackerWins = usedAtk > rawDef;
   return {

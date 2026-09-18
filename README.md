@@ -66,13 +66,13 @@ Friendly cards are never attacked.
 
 ## Battle comparison
 
-Clashes are a **higher-number-wins** side compare. **6 beats 3.** A clearly lower printed rank cannot beat a higher one.
+Clashes are a **higher-number-wins** side compare. **6 beats 3.** A clearly lower printed rank cannot beat a higher one — there are no P/M/X/A battle types and no Tetra Master hex-band rolls.
 
 The log shows it plainly: `6 vs 3 — capture`.
 
 ### Elements
 
-Every card with an element sits on one of three clockwise wheels. Element is a small **±1** on the attacking side (or on a Death Match total if the sums are tied). That bonus **never reverses a gap of 2+** — a 5 with fire advantage still loses to a 7.
+Every card with an element sits on one of three clockwise wheels. Element is a **tie-break only** (+1 or −1 when the printed sides are equal). It never overturns a number gap: a 6 still beats a 5 or a 3.
 
 Wheels (clockwise beats), also shown on the parchment plaque in the top-left of the table:
 
