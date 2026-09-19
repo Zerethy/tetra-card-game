@@ -472,6 +472,9 @@ function onDeckPointerUp(event) {
   event.preventDefault();
   event.stopPropagation();
   commitDeckDrop(payload, x, y);
+  window.setTimeout(() => {
+    skipAlbumClick = false;
+  }, 50);
 }
 
 function onAlbumPointerDown(event) {
