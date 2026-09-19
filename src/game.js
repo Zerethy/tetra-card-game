@@ -159,8 +159,13 @@ export function compareSides(attacker, defender, attackSide) {
   const elementMod = tied ? elementModifier(attacker, defender) : 0;
   const usedAtk = rawAtk + elementMod;
   const attackerWins = usedAtk > rawDef;
+  const defenderWins = !attackerWins && (rawDef > rawAtk || elementMod < 0);
+  const captured = attackerWins || defenderWins;
+  const hi = Math.max(rawAtk, rawDef);
+  const lo = Math.min(rawAtk, rawDef);
   return {
     attackerWins,
+    defenderWins,
     rawAtk,
     rawDef,
     atkStat: usedAtk,
@@ -170,7 +175,7 @@ export function compareSides(attacker, defender, attackSide) {
     elementMod,
     attackerElement: attacker.element || null,
     defenderElement: defender.element || null,
-    summary: `${rawAtk} vs ${rawDef} — ${attackerWins ? 'capture' : 'held'}`,
+    summary: captured ? `${hi} vs ${lo} — capture` : `${rawAtk} vs ${rawDef} — held`,
   };
 }
 
@@ -200,16 +205,59 @@ export function resolveBattle(attacker, defender, rng) {
 export function resolveCaptures(state, placedIndex, owner) {
   const events = [];
   const board = state.board;
-  if (!board[placedIndex]) return events;
+  const placed = board[placedIndex];
+  if (!placed) return events;
 
-  const queue = [{ index: placedIndex, kind: 'place' }];
-  while (queue.length) {
-    const { index: origin, kind } = queue.shift();
+  const originalOwner = owner;
+  const comboQueue = [];
+
+  for (const hit of neighborsOf(placedIndex)) {
+    const neighbor = board[hit.index];
+    if (!neighbor || neighbor.owner === originalOwner) continue;
+    const battle = compareSides(placed, neighbor, hit.side);
+    events.push({
+      type: 'battle',
+      attackerCell: placedIndex,
+      defenderCell: hit.index,
+      attackerName: placed.name,
+      defenderName: neighbor.name,
+      combo: false,
+      ...battle,
+    });
+    if (battle.attackerWins) {
+      neighbor.owner = originalOwner;
+      events.push({
+        type: 'capture',
+        cell: hit.index,
+        name: neighbor.name,
+        owner: originalOwner,
+        kind: 'side',
+      });
+      comboQueue.push({ index: hit.index, owner: originalOwner });
+    } else if (battle.defenderWins) {
+      const winner = neighbor.owner;
+      placed.owner = winner;
+      events.push({
+        type: 'counter',
+        cell: placedIndex,
+        name: placed.name,
+        owner: winner,
+        kind: 'side',
+      });
+      comboQueue.push({ index: placedIndex, owner: winner });
+    }
+  }
+
+  const seen = new Set();
+  while (comboQueue.length) {
+    const { index: origin, owner: comboOwner } = comboQueue.shift();
+    if (seen.has(origin)) continue;
+    seen.add(origin);
     const card = board[origin];
-    if (!card || card.owner !== owner) continue;
+    if (!card || card.owner !== comboOwner) continue;
     for (const hit of neighborsOf(origin)) {
       const defender = board[hit.index];
-      if (!defender || defender.owner === owner) continue;
+      if (!defender || defender.owner === comboOwner) continue;
       const battle = compareSides(card, defender, hit.side);
       events.push({
         type: 'battle',
@@ -217,19 +265,19 @@ export function resolveCaptures(state, placedIndex, owner) {
         defenderCell: hit.index,
         attackerName: card.name,
         defenderName: defender.name,
-        combo: kind === 'combo',
+        combo: true,
         ...battle,
       });
       if (!battle.attackerWins) continue;
-      defender.owner = owner;
+      defender.owner = comboOwner;
       events.push({
-        type: kind === 'place' ? 'capture' : 'combo',
+        type: 'combo',
         cell: hit.index,
         name: defender.name,
-        owner,
+        owner: comboOwner,
         kind: 'side',
       });
-      queue.push({ index: hit.index, kind: 'combo' });
+      comboQueue.push({ index: hit.index, owner: comboOwner });
     }
   }
 

@@ -13,7 +13,7 @@ import {
 } from './game.js';
 import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId, DEFAULT_IDENTITY_ID } from './cards.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid, renderIdentityGrid } from './ui.js';
+import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid, renderIdentityGrid, clashFlashHtml } from './ui.js';
 import {
   BOSSES,
   tradeTakeCount,
@@ -28,6 +28,8 @@ import {
   applyLoss,
   emptyCampaign,
   starterCollection,
+  autoPickHighest,
+  tradableCards,
   isRivalUnlocked,
   STAGE_COUNT,
   albumProgress,
@@ -103,7 +105,7 @@ test('orthogonal neighbors compare touching sides only', () => {
   assert.ok(result.events.some((e) => e.type === 'battle' && e.summary === '6 vs 3 — capture'));
 });
 
-test('a lower touching rank does not capture, and does not counter-capture', () => {
+test('a lower touching rank is counter-captured by the stronger neighbor', () => {
   const enemy = card({
     name: 'Wall',
     owner: 'ai',
@@ -114,14 +116,63 @@ test('a lower touching rank does not capture, and does not counter-capture', () 
     bottom: 1,
   });
   const st = stateWith([null, enemy, null, null, null, null, null, null, null], {
-    playerHand: [card({ instanceId: 10, right: 4, left: 8, top: 8, bottom: 8 })],
+    playerHand: [card({ instanceId: 10, name: 'Soft', right: 4, left: 8, top: 8, bottom: 8 })],
   });
   const result = placeCard(st, 'player', 0, 0);
   assert.equal(result.ok, true);
   assert.equal(st.board[1].owner, 'ai');
+  assert.equal(st.board[0].owner, 'ai');
+  assert.ok(result.events.some((e) => e.type === 'counter' && e.cell === 0));
+  assert.ok(result.events.some((e) => e.type === 'battle' && e.summary === '9 vs 4 — capture' && e.defenderWins));
+});
+
+test('strong card already on the board flips a weaker card placed adjacent', () => {
+  const strong = card({
+    name: 'Rotbriar',
+    owner: 'player',
+    instanceId: 2,
+    right: 8,
+    left: 8,
+    top: 8,
+    bottom: 9,
+  });
+  const st = stateWith([strong, null, null, null, null, null, null, null, null], {
+    phase: 'ai',
+    aiHand: [card({ instanceId: 11, name: 'Weakling', owner: 'ai', left: 3, right: 2, top: 2, bottom: 2 })],
+  });
+  const result = placeCard(st, 'ai', 0, 1);
+  assert.equal(result.ok, true);
+  assert.equal(st.board[1].owner, 'player');
   assert.equal(st.board[0].owner, 'player');
-  assert.ok(result.events.some((e) => e.type === 'battle' && e.attackerWins === false));
-  assert.equal(result.events.some((e) => e.type === 'counter'), false);
+  assert.ok(result.events.some((e) => e.type === 'counter'));
+  assert.ok(result.events.some((e) => e.type === 'battle' && e.summary === '8 vs 3 — capture'));
+});
+
+test('strong placed adjacent to weak captures the weak card', () => {
+  const enemy = card({
+    name: 'Foe',
+    owner: 'ai',
+    instanceId: 2,
+    left: 3,
+    right: 9,
+    top: 9,
+    bottom: 9,
+  });
+  const st = stateWith([null, enemy, null, null, null, null, null, null, null], {
+    playerHand: [card({ instanceId: 10, right: 8, left: 1, top: 1, bottom: 1 })],
+  });
+  const result = placeCard(st, 'player', 0, 0);
+  assert.equal(st.board[1].owner, 'player');
+  assert.ok(result.events.some((e) => e.type === 'capture'));
+  assert.ok(result.events.some((e) => e.type === 'battle' && e.summary === '8 vs 3 — capture'));
+});
+
+test('clash flash always prints the rank compare, even without an element', () => {
+  const capture = clashFlashHtml({ summary: '8 vs 3 — capture', rawAtk: 8, rawDef: 3, attackerWins: true, elementMod: 0 });
+  assert.match(capture, /cf-rank/);
+  assert.match(capture, /8 vs 3 — capture/);
+  const held = clashFlashHtml({ summary: '5 vs 5 — held', rawAtk: 5, rawDef: 5, attackerWins: false, elementMod: 0 });
+  assert.match(held, /5 vs 5 — held/);
 });
 
 test('ties do not capture', () => {
@@ -139,6 +190,44 @@ test('ties do not capture', () => {
   });
   placeCard(st, 'player', 0, 0);
   assert.equal(st.board[1].owner, 'ai');
+  assert.equal(st.board[0].owner, 'player');
+});
+
+test('equal sides capture only when an element tie-break decides it', () => {
+  const even = card({
+    name: 'Even',
+    owner: 'ai',
+    instanceId: 2,
+    left: 6,
+    right: 1,
+    top: 1,
+    bottom: 1,
+    element: 'ice',
+  });
+  const held = stateWith([null, even, null, null, null, null, null, null, null], {
+    playerHand: [card({ instanceId: 10, right: 6, left: 1, top: 1, bottom: 1, element: 'earth' })],
+  });
+  const heldResult = placeCard(held, 'player', 0, 0);
+  assert.equal(held.board[1].owner, 'ai');
+  assert.equal(held.board[0].owner, 'player');
+  assert.ok(heldResult.events.some((e) => e.summary === '6 vs 6 — held'));
+
+  const ice = card({
+    name: 'Even',
+    owner: 'ai',
+    instanceId: 3,
+    left: 6,
+    right: 1,
+    top: 1,
+    bottom: 1,
+    element: 'ice',
+  });
+  const fireWins = stateWith([null, ice, null, null, null, null, null, null, null], {
+    playerHand: [card({ instanceId: 11, right: 6, left: 1, top: 1, bottom: 1, element: 'fire' })],
+  });
+  const fireResult = placeCard(fireWins, 'player', 0, 0);
+  assert.equal(fireWins.board[1].owner, 'player');
+  assert.ok(fireResult.events.some((e) => e.summary === '6 vs 6 — capture' && e.attackerWins));
 });
 
 test('combo chains from a captured card into another neighbor', () => {
@@ -618,6 +707,18 @@ test('identity cards are strong signatures, pinned, and cannot be traded away', 
   assert.ok(bound.loadout.includes(uid));
   const afterLoss = applyLoss(bound, [uid]);
   assert.ok(afterLoss.player.some((c) => c.id === 'you-cinderpath'));
+  const veil = bindIdentity(emptyCampaign(), 'you-veilkept');
+  const tradable = tradableCards(veil.player.map((c) => ({ ...c })));
+  assert.equal(tradable.some((c) => isIdentityId(c.id)), false);
+  const session = makeDeathSession(veil, mulberry32(4));
+  assert.equal(session.playerWager.some((c) => isIdentityId(c.id)), false);
+  const picked = autoPickHighest(veil.player, 8);
+  assert.equal(picked.some((c) => isIdentityId(c.id)), false);
+  assert.ok(picked.length >= 1);
+  const oneClaim = autoPickHighest(veil.player, 1);
+  assert.equal(oneClaim.length, 1);
+  assert.equal(isIdentityId(oneClaim[0].id), false);
+  assert.notEqual(oneClaim[0].id, 'you-veilkept');
   const grid = renderAlbumGrid(fresh, fresh.loadout);
   assert.match(grid, /identity-tile/);
   assert.match(grid, /data-uid="/);

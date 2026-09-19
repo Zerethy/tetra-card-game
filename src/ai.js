@@ -24,7 +24,9 @@ function moveScore(state, owner, handIndex, cellIndex) {
     const target = state.board[hit.index];
     if (!target || target.owner === owner) continue;
     const battle = compareSides(card, target, hit.side);
-    score += battle.attackerWins ? 10 : -1;
+    if (battle.attackerWins) score += 10;
+    else if (battle.defenderWins) score -= 14;
+    else score -= 1;
   }
 
   if (cellIndex === 4) score += 3;

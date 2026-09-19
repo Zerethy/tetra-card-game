@@ -29,6 +29,7 @@ import {
   shouldOfferDeathMatch,
   autoPickHighest,
   preferUltimates,
+  tradableCards,
   applyWin,
   applyLoss,
   isUltimateId,
@@ -254,9 +255,10 @@ function beginDuel() {
   const chosen = campaign.loadout
     .map((uid) => playerHydrated.find((c) => c.uid === uid))
     .filter(Boolean);
-  const playerWager = chosen.length >= LOADOUT_SIZE
+  const playable = chosen.length >= LOADOUT_SIZE
     ? chosen.slice(0, LOADOUT_SIZE)
     : pickWager(playerHydrated, LOADOUT_SIZE, rng);
+  const playerWager = tradableCards(playable);
   const aiTemplates = buildBossDeck(boss, rng);
   const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || `ai-${t.id}-${Math.random().toString(36).slice(2, 6)}` }));
   const vault = buildAiVault(aiWager, 2, rng, boss).map(hydrateOwned).filter(Boolean);
@@ -271,7 +273,7 @@ function beginDuel() {
   };
 
   match = createMatch({
-    playerTemplates: playerWager,
+    playerTemplates: playable,
     aiTemplates: aiWager,
     tradeRule: campaign.trade,
     rivalId: boss.id,
@@ -723,10 +725,7 @@ function describeEvents(events) {
     if (ev.type === 'battle') {
       const extras = [];
       if (ev.elementMod) extras.push(`element ${ev.elementMod > 0 ? '+' : ''}${ev.elementMod}`);
-      bits.push(
-        `${ev.attackerName} ${ev.rawAtk ?? ev.atkStat} vs ${ev.rawDef ?? ev.defStat} — ${ev.attackerWins ? 'capture' : 'held'}` +
-          (extras.length ? ` (${extras.join(', ')})` : ''),
-      );
+      bits.push(ev.summary + (extras.length ? ` (${extras.join(', ')})` : ''));
     } else if (ev.type === 'capture') {
       bits.push(`${ev.name} flips.`);
     } else if (ev.type === 'combo') {
@@ -747,7 +746,9 @@ function afterPlace(events, who) {
   for (const ev of events) {
     if (ev.type !== 'battle') continue;
     const html = clashFlashHtml(ev);
-    if (html) clashFlashes.set(ev.defenderCell, html);
+    if (!html) continue;
+    clashFlashes.set(ev.defenderCell, html);
+    if (ev.defenderWins) clashFlashes.set(ev.attackerCell, html);
   }
   els.log.textContent = describeEvents(events) || `${who === 'player' ? 'You' : rivalName()} placed a card.`;
   if (events.some((e) => e.type === 'counter')) sfx('counter');
@@ -822,7 +823,7 @@ function openClaim() {
   const ruleName = TRADE_RULES.find((r) => r.id === rule)?.name || 'One';
   const pool = playerWon
     ? preferUltimates(session.aiWager, boss.ultimates)
-    : session.playerWager.slice();
+    : tradableCards(session.playerWager);
   const need = tradeTakeCount(rule, pool.length, s.player - s.ai);
   const auto = playerWon ? pool.slice(0, need) : autoPickHighest(pool, need);
   claimState = {
@@ -861,7 +862,7 @@ function openClaim() {
 function renderClaimGrid() {
   if (!claimState) return;
   const selected = new Set(claimState.selected);
-  els.claimGrid.innerHTML = claimState.pool
+  els.claimGrid.innerHTML = tradableCards(claimState.pool)
     .map((card, i) =>
       renderClaimCard(
         { ...card, owner: claimState.mode === 'win' ? 'ai' : 'player', instanceId: card.uid || i },
@@ -893,7 +894,7 @@ function confirmClaim() {
     els.claimNote.textContent = `Select exactly ${claimState.need}.`;
     return;
   }
-  const chosen = claimState.pool.filter((c) => claimState.selected.includes(c.uid));
+  const chosen = tradableCards(claimState.pool).filter((c) => claimState.selected.includes(c.uid));
   if (claimState.mode === 'win') {
     campaign = applyWin(campaign, chosen, session.boss);
   } else {
@@ -907,9 +908,9 @@ function openDeathMatch(opts = {}) {
   const rng = mulberry32((Math.random() * 2 ** 31) | 0);
   if (!session) session = makeDeathSession(campaign, rng);
   const boss = session.boss || bossById(campaign.rival);
-  const playerPool = session.playerWager.filter(Boolean);
+  const playerPool = tradableCards(session.playerWager);
   const aiPool = [...session.aiWager, ...(session.aiVault || [])].filter(Boolean);
-  const playerCard = playerPool[Math.floor(rng() * playerPool.length)] || hydrateOwned(campaign.player[0]);
+  const playerCard = playerPool[Math.floor(rng() * playerPool.length)] || tradableCards(campaign.player.map(hydrateOwned))[0];
   const aiCard = aiPool[Math.floor(rng() * aiPool.length)];
   const rule = session.trade || campaign.trade;
   const collectionCount = campaign.player.length;
@@ -979,7 +980,7 @@ function finishDeathMatch() {
     const claimed = autoPickHighest(pool.length ? pool : [deathState.aiCard], deathState.take);
     campaign = applyWin(campaign, claimed, boss);
   } else if (winner === 'ai') {
-    const pool = session?.playerWager?.length ? session.playerWager : campaign.player.map(hydrateOwned);
+    const pool = tradableCards(session?.playerWager?.length ? session.playerWager : campaign.player.map(hydrateOwned));
     const taken = autoPickHighest(pool, deathState.loseTake);
     campaign = applyLoss(campaign, taken.map((c) => c.uid));
   }

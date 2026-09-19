@@ -62,7 +62,7 @@ When you place a card, it compares **touching sides** with every orthogonally ad
 - Your **Top** vs their **Bottom**
 - Your **Bottom** vs their **Top**
 
-**Higher number captures** and flips the enemy to your color (blue ↔ pink). Ties do nothing. Losing a compare does not counter-capture your placed card.
+**Higher number captures.** Each place resolves both ways: the new card’s touching side vs the neighbor’s opposite side. If yours is higher, you flip them. If theirs is higher, they flip the card you just put down. Ties do nothing unless an element tie-break decides it. The table flashes `8 vs 3 — capture` on every clash.
 
 **Combo** — a newly captured card immediately compares its other sides against remaining neighbors, and those captures can chain.
 

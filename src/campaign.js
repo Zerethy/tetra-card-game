@@ -181,7 +181,7 @@ export function shouldOfferDeathMatch({ albumCount, optedIn }) {
 
 export function makeDeathSession(campaign, rng) {
   const boss = bossById(campaign.rival);
-  const playerWager = (campaign.player || []).map(hydrateOwned).filter(Boolean);
+  const playerWager = tradableCards((campaign.player || []).map(hydrateOwned));
   const aiTemplates = buildBossDeck(boss, rng);
   const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || newUid() }));
   const aiVault = buildAiVault(aiWager, 2, rng, boss).map(hydrateOwned).filter(Boolean);
@@ -195,8 +195,12 @@ export function makeDeathSession(campaign, rng) {
   };
 }
 
+export function tradableCards(cards = []) {
+  return (cards || []).filter((card) => card && !isIdentityId(card.id));
+}
+
 export function autoPickHighest(cards, n) {
-  return cards
+  return tradableCards(cards)
     .slice()
     .sort((a, b) => rankCard(b) - rankCard(a) || String(a.id).localeCompare(String(b.id)))
     .slice(0, Math.max(0, n));

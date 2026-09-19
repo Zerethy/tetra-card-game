@@ -270,17 +270,23 @@ button {
 }
 
 .clash-flash span {
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 999px;
   font-family: Cinzel, serif;
   font-weight: 800;
-  font-size: clamp(8px, 1.5cqw, 11px);
+  font-size: clamp(9px, 1.8cqw, 12px);
   letter-spacing: 0.04em;
   color: #2a1a0c;
   background: linear-gradient(180deg, #ffe27a, #d4a030);
   border: 1px solid #5a3810;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
   white-space: nowrap;
+}
+
+.clash-flash .cf-rank {
+  padding: 5px 11px;
+  font-size: clamp(12px, 2.8cqw, 16px);
+  letter-spacing: 0.03em;
 }
 
 .clash-flash .cf-el {
