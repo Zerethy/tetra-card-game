@@ -13,7 +13,7 @@ import {
 } from './game.js';
 import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId } from './cards.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid } from './ui.js';
+import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid, renderIdentityGrid } from './ui.js';
 import {
   BOSSES,
   tradeTakeCount,
@@ -580,11 +580,16 @@ test('album progress starts at three unique beasts and a five-card loadout', () 
 
 test('identity cards are modest, pinned, and cannot be traded away', () => {
   assert.equal(IDENTITIES.length, 9);
+  assert.equal(new Set(IDENTITIES.map((c) => c.element)).size, 9);
   for (const card of IDENTITIES) {
     assert.ok(card.level <= 2, card.id);
     assert.ok(isIdentityId(card.id));
     assert.match(loreOf(card).kind, /Identity/);
   }
+  const pick = renderIdentityGrid('you-cinderpath');
+  assert.match(pick, /Cinderpath/);
+  assert.match(pick, /Fire/);
+  assert.match(pick, /identity-pick selected/);
   const bound = bindIdentity(emptyCampaign(), 'you-cinderpath');
   assert.equal(bound.identityId, 'you-cinderpath');
   assert.ok(bound.player.some((c) => c.id === 'you-cinderpath'));

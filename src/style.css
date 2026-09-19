@@ -1570,6 +1570,10 @@ button {
   border-radius: 999px;
 }
 
+#identity-overlay {
+  z-index: 26;
+}
+
 .identity-card {
   width: min(920px, 100%);
 }
@@ -1611,9 +1615,20 @@ button {
   background: rgba(42, 16, 72, 0.12);
 }
 
+.identity-el {
+  display: block;
+  margin: 8px 8px 0;
+  font-family: Cinzel, serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #3a1848;
+}
+
 .identity-vibe {
   display: block;
-  margin: 6px 8px 0;
+  margin: 4px 8px 0;
   font-size: 12px;
   line-height: 1.35;
   color: #3a2410;

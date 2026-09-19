@@ -318,7 +318,7 @@ export const IDENTITIES = [
     bottom: 3,
     left: 4,
     element: 'fire',
-    art: 'seeker',
+    art: 'duelist',
     identity: true,
   },
   {
@@ -332,7 +332,7 @@ export const IDENTITIES = [
     bottom: 5,
     left: 6,
     element: 'ice',
-    art: 'seeker',
+    art: 'shard',
     identity: true,
   },
   {
@@ -346,7 +346,7 @@ export const IDENTITIES = [
     bottom: 6,
     left: 4,
     element: 'water',
-    art: 'seeker',
+    art: 'oracle',
     identity: true,
   },
   {
@@ -360,7 +360,7 @@ export const IDENTITIES = [
     bottom: 3,
     left: 5,
     element: 'wind',
-    art: 'seeker',
+    art: 'wyvern',
     identity: true,
   },
   {
@@ -374,7 +374,7 @@ export const IDENTITIES = [
     bottom: 6,
     left: 5,
     element: 'earth',
-    art: 'seeker',
+    art: 'matron',
     identity: true,
   },
   {
@@ -388,7 +388,7 @@ export const IDENTITIES = [
     bottom: 3,
     left: 4,
     element: 'thunder',
-    art: 'seeker',
+    art: 'choir',
     identity: true,
   },
   {
@@ -402,7 +402,7 @@ export const IDENTITIES = [
     bottom: 5,
     left: 3,
     element: 'holy',
-    art: 'seeker',
+    art: 'paladin',
     identity: true,
   },
   {
@@ -416,7 +416,7 @@ export const IDENTITIES = [
     bottom: 4,
     left: 6,
     element: 'dark',
-    art: 'seeker',
+    art: 'witch',
     identity: true,
   },
   {
@@ -430,7 +430,7 @@ export const IDENTITIES = [
     bottom: 6,
     left: 3,
     element: 'poison',
-    art: 'seeker',
+    art: 'plague',
     identity: true,
   },
 ];

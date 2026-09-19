@@ -197,8 +197,10 @@ export function renderIdentityGrid(selectedId) {
   return IDENTITIES.map((card) => {
     const view = { ...card, instanceId: card.id, owner: 'player' };
     const sel = selectedId === card.id ? ' selected' : '';
+    const elName = ELEMENT_TITLE[card.element] || card.element;
     return `<button type="button" class="identity-pick${sel}" data-id="${escapeText(card.id)}" title="${escapeText(card.vibe)}">
       ${renderCard(view, { surface: `id-${card.id}`, owner: 'player', showName: true })}
+      <span class="identity-el el-${escapeText(card.element)}">${escapeText(elName)} · ${escapeText(card.title)}</span>
       <span class="identity-vibe">${escapeText(card.vibe)}</span>
     </button>`;
   }).join('');
