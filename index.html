@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aetherbound — Parchment Card Duel</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600;800&family=Crimson+Pro:ital,wght@0,500;0,700;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="parchment" aria-hidden="true"></div>
+      <div class="leather" aria-hidden="true"></div>
+      <div class="table-vignette" aria-hidden="true"></div>
+      <div class="ornament" aria-hidden="true"></div>
+
+      <header class="top-bar">
+        <button type="button" id="help-btn" class="text-btn">How to Play</button>
+        <div class="brand">
+          <span class="cursor-pip" id="turn-pip" title="Current turn"></span>
+          <h1>Aetherbound</h1>
+        </div>
+        <button type="button" id="new-btn" class="text-btn">New Match</button>
+      </header>
+
+      <aside class="hud-wheel hidden" id="hud-wheel" aria-label="Elemental wheel"></aside>
+
+      <p class="status" id="status">Draw five champions. Capture the board.</p>
+
+      <section class="ai-rail" id="ai-rail" aria-label="Opponent hand"></section>
+
+      <main class="playfield">
+        <div class="score score-ai" id="score-ai">5</div>
+        <div class="board-stage">
+          <div class="board" id="board" aria-label="Ninefold board"></div>
+          <div class="result-layer hidden" id="result-layer">
+            <p class="result-banner" id="result-banner">
+              <span class="you">You</span> <span class="win">Win!</span>
+            </p>
+          </div>
+        </div>
+        <div class="score score-player" id="score-player">5</div>
+        <div class="side-cards" id="side-cards"></div>
+      </main>
+
+      <section class="player-rail" id="player-rail" aria-label="Your hand"></section>
+
+      <p class="hint" id="hint"></p>
+      <p class="combat-log" id="combat-log"></p>
+      <button type="button" id="again-btn" class="seal-btn again-btn hidden">Play Again</button>
+    </div>
+
+    <div class="overlay" id="title-overlay">
+      <div class="title-card">
+        <p class="eyebrow">A gothic parchment duel</p>
+        <h2>Aetherbound</h2>
+        <div class="title-deck" id="title-deck" aria-hidden="true"></div>
+        <p class="lede">
+          Choose who you are, then start at Stage 1 with low beasts. Win trades to climb.
+          Boss 1 is weak-tier. Lord Cindervow at Stage 10 is the hardest fight, not a wall.
+        </p>
+        <div class="setup-panel">
+          <p class="setup-label">Trade rule</p>
+          <div class="chip-row" id="trade-row" role="group" aria-label="Trade rule"></div>
+          <p class="setup-label">Stage</p>
+          <div class="chip-row" id="rival-row" role="group" aria-label="Stage"></div>
+          <div class="boss-ultimates" id="boss-ultimates"></div>
+          <p class="collection-line" id="collection-line"></p>
+          <p class="setup-label">After a duel</p>
+          <div class="chip-row" id="stakes-row" role="group" aria-label="Death Match opt-in"></div>
+          <p class="death-warn hidden" id="death-warn">Your album is down to one card. Only a Death Match remains.</p>
+        </div>
+        <div class="title-actions">
+          <button type="button" id="start-btn" class="seal-btn">New Match</button>
+          <button type="button" id="album-btn" class="seal-btn album-seal">Album</button>
+          <button type="button" id="identity-btn" class="text-btn">Identity</button>
+          <button type="button" id="death-btn" class="text-btn">Death Match</button>
+          <button type="button" id="title-help-btn" class="text-btn">How to Play</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="album-overlay">
+      <div class="help-card album-card">
+        <h2>Card Album</h2>
+        <p class="lede" id="album-lede">Tap a spare card, then a slot — or tap a slot, then a spare. Identity stays pinned as You.</p>
+        <p class="setup-label" id="loadout-label">Your five</p>
+        <p class="loadout-hint" id="loadout-hint">Tap a spare under Switch with these, then tap a slot to equip it.</p>
+        <div class="loadout-row deck-tray" id="loadout-row"></div>
+        <section class="switch-panel is-idle" id="switch-panel">
+          <p class="setup-label" id="switch-label">Switch with these</p>
+          <p class="switch-hint" id="switch-hint">Tap a slot in Your five to change it.</p>
+          <div class="switch-grid" id="switch-grid"></div>
+        </section>
+        <div class="browse-toggle-row">
+          <button type="button" id="browse-all-btn" class="text-btn">Browse all</button>
+          <p class="collection-line" id="album-progress"></p>
+        </div>
+        <div class="album-browse collapsed" id="album-browse">
+          <p class="setup-label">Full album</p>
+          <div class="album-grid" id="album-grid"></div>
+        </div>
+        <div class="title-actions">
+          <button type="button" id="album-confirm" class="seal-btn">Use these five</button>
+          <button type="button" id="album-close" class="text-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="identity-overlay">
+      <div class="help-card identity-card">
+        <p class="eyebrow">Who walks the ninefold</p>
+        <h2>Choose Identity</h2>
+        <p class="lede">Pick who you are and your element. Rotbriar is recommended. Your identity is a strong signature card — pinned as You, never traded away, yours to include in the five.</p>
+        <div class="identity-grid" id="identity-grid"></div>
+        <div class="title-actions">
+          <button type="button" id="identity-confirm" class="seal-btn" disabled>Bind this name</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="help-overlay">
+      <div class="help-card">
+        <h2>How to Play</h2>
+        <ol>
+          <li>Each duelist shuffles a deck and <strong>draws 5 cards</strong> into a hand.</li>
+          <li>On your turn, <strong>select a card</strong>, then click an empty square on the 3×3 board.</li>
+          <li>Hover any face-up card — especially ones <strong>already on the board</strong> — to enlarge its ranks, name, level, and art. The preview is click-through.</li>
+          <li>A placed card compares its <strong>touching side ranks</strong> with every orthogonally adjacent enemy (Top vs Bottom, Left vs Right).</li>
+          <li><strong>Higher number captures</strong> — the stronger touching side flips the weaker card, even if the weaker card was just placed. Ties do nothing unless an element tie-break decides it. The table flashes <em>8 vs 3 — capture</em> on every clash.</li>
+          <li>Captured cards can <strong>combo</strong> — they immediately compare their other sides against remaining neighbors.</li>
+          <li>The board fills at 9 cards. Highest total of <strong>board + remaining hand</strong> wins.</li>
+          <li>A fresh album is <strong>your identity</strong> plus <strong>level-1 beasts</strong>. Winning a stage unlocks the next rival (1 → 10).</li>
+          <li>Open the <strong>Album</strong>. <strong>Your five</strong> sit at the top. Spare owned cards stay listed under <strong>Switch with these</strong> (strongest / newest first). Tap a spare then a slot, or a slot then a spare. After a win, the album opens on your new card. Identity stays pinned. <em>Browse all</em> opens the full collection.</li>
+        </ol>
+        <p class="help-types">
+          Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). Boss 1 uses weak-tier Lv1 signatures, beatable with starters. Mid bosses step up and add one stronger ultimate. Boss 10 keeps a full late kit and is hard, not unwinnable.
+          Each card prints four ranks on its sides (1–A). Clashes are <strong>higher number wins</strong> (6 beats 3). Elements follow the three wheels on the plaque (tie-break only; never overturn a number gap).
+          After a win, <strong>Move On</strong> claims the trade — that is how you earn stronger ultimates. <strong>Death Match</strong> is not required after a clean win — only at one card, or if you opt in for bigger stakes.
+        </p>
+        <button type="button" id="close-help" class="seal-btn">Close</button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="claim-overlay">
+      <div class="help-card claim-card">
+        <h2 id="claim-title">Claim</h2>
+        <p class="lede" id="claim-lede"></p>
+        <div class="claim-ultimates" id="claim-ultimates"></div>
+        <div class="claim-grid" id="claim-grid"></div>
+        <p class="claim-note" id="claim-note"></p>
+        <div class="title-actions claim-actions">
+          <button type="button" id="claim-confirm" class="seal-btn">Move On</button>
+          <button type="button" id="death-optin" class="text-btn">Death Match</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="death-overlay">
+      <div class="help-card death-card">
+        <p class="eyebrow">Sudden death</p>
+        <h2>Death Match</h2>
+        <p class="lede" id="death-lede">Each side pulls one card. The loser pays a harsher stake.</p>
+        <div class="death-duel" id="death-duel"></div>
+        <p class="claim-note" id="death-note"></p>
+        <div class="title-actions">
+          <button type="button" id="death-go" class="seal-btn">Pull Cards</button>
+          <button type="button" id="death-done" class="seal-btn hidden">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="card-zoom" class="card-zoom hidden" aria-hidden="true"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
