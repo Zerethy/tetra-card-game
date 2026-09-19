@@ -21,7 +21,7 @@ npm run build # production bundle
 ## How a match works
 
 1. Each player shuffles a deck of eight original champions and **draws five into a hand**.
-2. You take turns placing one card from your hand onto an empty square of the **3×3 board**.
+2. You take turns placing one card from your hand onto an empty square of the **3×3 board**. Hover a face-up card (board or hand) to enlarge its four side ranks; the preview does not block clicks.
 3. You go first (five placements). The AI places four. The match ends when every square is filled.
 4. **Score** is cards you own on the board **plus cards still in your hand**. Captures swing that total. Highest score wins; a tie is a draw.
 5. The parchment overlay announces **You Win!**, **You Lose!**, or **Draw Game**.

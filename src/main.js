@@ -390,17 +390,27 @@ function hideCardZoom() {
   els.zoom.innerHTML = '';
 }
 
-function placeCardZoom(cardEl) {
+function placeCardZoom(cardEl, onBoard = false) {
   if (!els.zoom || !cardEl) return;
   const r = cardEl.getBoundingClientRect();
-  const w = 220;
-  const h = 308;
+  const w = onBoard ? 256 : 220;
+  const h = onBoard ? 358 : 308;
+  els.zoom.style.width = `${w}px`;
+  els.zoom.style.height = `${h}px`;
   let left;
   let top;
-  if (r.bottom > window.innerHeight * 0.62) {
+  const sideRoom = window.innerWidth - r.right > w + 16;
+  const leftRoom = r.left > w + 16;
+  if (onBoard && sideRoom) {
+    left = r.right + 16;
+    top = r.top + r.height / 2 - h / 2;
+  } else if (onBoard && leftRoom) {
+    left = r.left - w - 16;
+    top = r.top + r.height / 2 - h / 2;
+  } else if (r.bottom > window.innerHeight * 0.62) {
     left = r.left + r.width / 2 - w / 2;
     top = r.top - h - 14;
-  } else if (window.innerWidth - r.right > w + 16) {
+  } else if (sideRoom) {
     left = r.right + 14;
     top = r.top + r.height / 2 - h / 2;
   } else {
@@ -417,14 +427,17 @@ function showCardZoom(cardEl) {
   if (!els.zoom || !cardEl || cardEl.classList.contains('face-down')) return;
   if (cardEl.closest('.card-zoom')) return;
   zoomSource = cardEl;
+  const onBoard = Boolean(cardEl.closest('.board .cell'));
+  els.zoom.classList.toggle('on-board', onBoard);
   els.zoom.innerHTML = cardEl.outerHTML;
   const preview = els.zoom.querySelector('.tm-card');
   preview?.classList.remove('selected', 'just-placed', 'just-captured');
   els.zoom.classList.remove('hidden');
-  placeCardZoom(cardEl);
+  placeCardZoom(cardEl, onBoard);
 }
 
 function render() {
+  const keepInstance = zoomSource?.dataset?.instance;
   hideCardZoom();
   if (!match) {
     els.board.innerHTML = '';
@@ -503,6 +516,10 @@ function render() {
   else els.result.classList.add('hidden');
   els.again.classList.toggle('hidden', match.phase !== 'ended');
   if (match.phase === 'ended') els.again.textContent = match.winner === 'draw' ? 'Move On' : 'Collect';
+  if (keepInstance) {
+    const again = document.querySelector(`.tm-card[data-instance="${keepInstance}"]:not(.face-down)`);
+    if (again) showCardZoom(again);
+  }
 }
 
 function showResult() {

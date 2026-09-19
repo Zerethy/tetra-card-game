@@ -483,6 +483,11 @@ button {
   pointer-events: none;
 }
 
+.cell.filled {
+  pointer-events: auto;
+  cursor: default;
+}
+
 .score {
   font-family: Cinzel, serif;
   font-weight: 800;
@@ -1907,6 +1912,11 @@ button {
 .card-zoom .tm-card {
   width: 100%;
   height: 100%;
+}
+
+.card-zoom.on-board {
+  width: 256px;
+  height: 358px;
 }
 
 @media (prefers-reduced-motion: reduce) {
