@@ -621,6 +621,8 @@ test('identity cards are strong signatures, pinned, and cannot be traded away', 
   assert.match(grid, /identity-tile/);
   assert.match(grid, /data-uid="/);
   assert.match(grid, /pinned/);
+  assert.match(grid, /album-state is-selected/);
+  assert.match(grid, /album-state is-ready|drag in/);
 });
 
 test('album loadout drag adds, replaces, reorders, and refuses to drop identity', () => {

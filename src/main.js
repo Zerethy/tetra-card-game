@@ -398,12 +398,18 @@ function markDeckDrop(x, y) {
     hit.slot.classList.add(replacingYou && !sameSlot ? 'drop-block' : 'drop-ok');
     return;
   }
+  if (deckDrag.payload.source === 'album' && hit.row) {
+    hit.row.classList.add('drop-ok');
+    return;
+  }
   if (deckDrag.payload.source !== 'loadout') return;
   if (hit.tile) {
     hit.tile.classList.add(hit.tile.classList.contains('pinned') ? 'drop-block' : 'drop-ok');
     return;
   }
-  if (hit.grid) hit.grid.classList.add('drop-ok');
+  if (!hit.row) {
+    (hit.grid || els.album)?.classList.add('drop-ok');
+  }
 }
 
 function beginDeckDrag(event) {
@@ -447,9 +453,11 @@ function commitDeckDrop(payload, x, y) {
     const index = Number(hit.slot.dataset.index);
     if (payload.source === 'album') next = dragAlbumToSlot(campaign, payload.id, index);
     else if (payload.source === 'loadout') next = moveLoadoutIndex(campaign, payload.index, index);
+  } else if (payload.source === 'album' && hit.row) {
+    next = dragAlbumToSlot(campaign, payload.id, pruneLoadout(campaign).length);
   } else if (payload.source === 'loadout' && hit.tile) {
     next = swapLoadoutWithAlbum(campaign, payload.uid, hit.tile.dataset.id);
-  } else if (payload.source === 'loadout' && hit.grid) {
+  } else if (payload.source === 'loadout' && !hit.row) {
     next = removeLoadoutUid(campaign, payload.uid);
   } else {
     return;

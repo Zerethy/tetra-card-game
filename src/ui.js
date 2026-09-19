@@ -173,7 +173,8 @@ export function renderAlbumGrid(campaign, loadout = []) {
         const seat = inLoadout ? ' seated' : ' available';
         return `<button type="button" class="album-tile owned identity-tile pinned${inLoadout ? ' in-loadout' : ''}${seat}" data-id="${escapeText(card.id)}" data-uid="${escapeText(identityOwned.uid)}" data-pinned="1">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
-        <span class="album-count">You · ${inLoadout ? 'in five' : 'owned'}</span>
+        <span class="album-state ${inLoadout ? 'is-selected' : 'is-ready'}">${inLoadout ? 'In five' : 'Available'}</span>
+        <span class="album-count">You · ${inLoadout ? 'pinned' : 'owned'}</span>
       </button>`;
       })()
     : '';
@@ -190,7 +191,8 @@ export function renderAlbumGrid(campaign, loadout = []) {
       const view = { ...card, uid: copies[0].uid, instanceId: copies[0].uid, owner: 'player' };
       return `<button type="button" class="album-tile owned${inLoadout ? ' in-loadout' : ''}${seated ? ' seated' : ' available'}" data-id="${escapeText(card.id)}" data-uid="${escapeText(free.uid)}">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
-        <span class="album-count">${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ' · drag in'}</span>
+        <span class="album-state ${seated ? 'is-selected' : 'is-ready'}">${seated ? 'In five' : 'Available'}</span>
+        <span class="album-count">${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ''}${seated ? '' : ' · drag in'}</span>
       </button>`;
     });
   return identityTile + tiles.join('');

@@ -1496,11 +1496,15 @@ button {
 }
 
 .album-tile.available .tm-card {
-  box-shadow: 0 0 0 2px rgba(122, 32, 200, 0.35);
+  box-shadow: 0 0 0 2px #c9a24a, 0 0 10px rgba(212, 168, 74, 0.35);
 }
 
 .album-tile.seated {
   cursor: grab;
+}
+
+.album-tile.seated .tm-card {
+  filter: saturate(0.92);
 }
 
 .album-tile .tm-card {
@@ -1510,6 +1514,29 @@ button {
 
 .album-tile.in-loadout .tm-card {
   box-shadow: 0 0 0 3px #7a20c8, 0 0 14px rgba(180, 40, 255, 0.5);
+}
+
+.album-state {
+  position: absolute;
+  right: 2px;
+  bottom: 18px;
+  z-index: 8;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.album-state.is-selected {
+  background: #5a148f;
+  color: #f3e8ff;
+}
+
+.album-state.is-ready {
+  background: #3a2408;
+  color: #ffe27a;
 }
 
 .album-tile.seated .album-count {
@@ -1592,7 +1619,9 @@ button {
 
 .loadout-slot.drop-ok,
 .album-tile.drop-ok,
-#album-grid.drop-ok {
+#album-grid.drop-ok,
+.loadout-row.drop-ok,
+#album-overlay.drop-ok .album-card {
   box-shadow: 0 0 0 3px #2f8f4e, 0 0 16px rgba(60, 180, 90, 0.45);
 }
 
