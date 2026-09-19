@@ -8,6 +8,8 @@ import {
   renderChip,
   renderUltimateStrip,
   renderClaimCard,
+  renderAlbumGrid,
+  renderIdentityGrid,
 } from './ui.js';
 import {
   BOSSES,
@@ -33,7 +35,12 @@ import {
   resolveShowdown,
   isRivalUnlocked,
   STAGE_COUNT,
+  LOADOUT_SIZE,
+  albumProgress,
+  sanitizeLoadout,
+  bindIdentity,
 } from './campaign.js';
+import { cardById } from './cards.js';
 
 const els = {
   title: document.getElementById('title-overlay'),
@@ -80,6 +87,18 @@ const els = {
   deathGo: document.getElementById('death-go'),
   deathDone: document.getElementById('death-done'),
   zoom: document.getElementById('card-zoom'),
+  album: document.getElementById('album-overlay'),
+  albumBtn: document.getElementById('album-btn'),
+  albumClose: document.getElementById('album-close'),
+  albumConfirm: document.getElementById('album-confirm'),
+  albumGrid: document.getElementById('album-grid'),
+  albumProgress: document.getElementById('album-progress'),
+  albumLede: document.getElementById('album-lede'),
+  loadoutRow: document.getElementById('loadout-row'),
+  identity: document.getElementById('identity-overlay'),
+  identityBtn: document.getElementById('identity-btn'),
+  identityGrid: document.getElementById('identity-grid'),
+  identityConfirm: document.getElementById('identity-confirm'),
 };
 
 let campaign = loadCampaign();
@@ -94,6 +113,8 @@ let audioCtx = null;
 let session = null;
 let claimState = null;
 let deathState = null;
+let albumIntent = 'browse';
+let pendingIdentity = null;
 
 function rivalName() {
   return bossById(campaign.rival).name;
@@ -169,10 +190,12 @@ function renderSetup() {
   const n = campaign.player.length;
   const ults = campaign.claimedUltimates.length;
   if (els.collectionLine) {
+    const you = campaign.identityId ? cardById(campaign.identityId) : null;
+    const youBit = you ? ` · You are <strong>${you.name}</strong>` : '';
     els.collectionLine.innerHTML =
       n === 0
         ? `Album empty. <button type="button" class="text-btn" id="rebuild-album">Rebuild starter album</button>`
-        : `Album · <strong>${n}</strong> card${n === 1 ? '' : 's'} · ${ults} ultimate${ults === 1 ? '' : 's'} claimed · Stage <strong>${unlocked}</strong>/${STAGE_COUNT}`;
+        : `Album · <strong>${albumProgress(campaign).owned}</strong>/${albumProgress(campaign).total} unique · ${n} cop${n === 1 ? 'y' : 'ies'} · ${ults} ultimate${ults === 1 ? '' : 's'} · Stage <strong>${unlocked}</strong>/${STAGE_COUNT}${youBit}`;
   }
   if (els.start) {
     if (n === 0) els.start.textContent = 'Rebuild Album';
@@ -192,7 +215,7 @@ function renderSetup() {
 }
 
 function openTitle() {
-  els.title.classList.remove('hidden');
+  els.album?.classList.add('hidden');
   els.claim?.classList.add('hidden');
   els.death?.classList.add('hidden');
   els.result.classList.add('hidden');
@@ -202,6 +225,13 @@ function openTitle() {
   session = null;
   claimState = null;
   deathState = null;
+  if (!campaign.identityId) {
+    els.title.classList.add('hidden');
+    openIdentity();
+    return;
+  }
+  els.identity?.classList.add('hidden');
+  els.title.classList.remove('hidden');
   renderSetup();
   render();
 }
@@ -209,8 +239,14 @@ function openTitle() {
 function beginDuel() {
   const rng = mulberry32((Math.random() * 2 ** 31) | 0);
   const boss = bossById(campaign.rival);
+  campaign.loadout = sanitizeLoadout(campaign);
   const playerHydrated = campaign.player.map(hydrateOwned).filter(Boolean);
-  const playerWager = pickWager(playerHydrated, 8, rng);
+  const chosen = campaign.loadout
+    .map((uid) => playerHydrated.find((c) => c.uid === uid))
+    .filter(Boolean);
+  const playerWager = chosen.length >= LOADOUT_SIZE
+    ? chosen.slice(0, LOADOUT_SIZE)
+    : pickWager(playerHydrated, LOADOUT_SIZE, rng);
   const aiTemplates = buildBossDeck(boss, rng);
   const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || `ai-${t.id}-${Math.random().toString(36).slice(2, 6)}` }));
   const vault = buildAiVault(aiWager, 2, rng, boss).map(hydrateOwned).filter(Boolean);
@@ -248,7 +284,91 @@ function beginDuel() {
   render();
 }
 
+function renderAlbum() {
+  campaign.loadout = sanitizeLoadout(campaign);
+  const progress = albumProgress(campaign);
+  if (els.albumProgress) {
+    els.albumProgress.textContent = `${progress.owned} / ${progress.total} unique · duel five ${campaign.loadout.length}/${LOADOUT_SIZE}`;
+  }
+  if (els.albumLede) {
+    els.albumLede.textContent = albumIntent === 'duel'
+      ? 'Pick five champions for this duel. Click an owned card to add it; click a chosen card to remove it.'
+      : 'Owned cards are face-up. Unknown cards stay silhouettes. Your identity sits first. Pick five for the next duel.';
+  }
+  if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout);
+  if (els.loadoutRow) {
+    const hydrated = campaign.player.map(hydrateOwned).filter(Boolean);
+    els.loadoutRow.innerHTML = campaign.loadout.map((uid) => {
+      const card = hydrated.find((c) => c.uid === uid);
+      if (!card) return '';
+      return `<button type="button" class="loadout-slot" data-uid="${card.uid}">${renderCard(card, { surface: `ld-${uid}`, owner: 'player', showName: true })}</button>`;
+    }).join('');
+  }
+  if (els.albumConfirm) {
+    els.albumConfirm.disabled = campaign.loadout.length !== LOADOUT_SIZE;
+    els.albumConfirm.textContent = albumIntent === 'duel' ? 'Duel with these five' : 'Use these five';
+  }
+}
+
+function openAlbum(intent = 'browse') {
+  albumIntent = intent;
+  els.album?.classList.remove('hidden');
+  renderAlbum();
+}
+
+function closeAlbum() {
+  els.album?.classList.add('hidden');
+}
+
+function confirmAlbum() {
+  campaign.loadout = sanitizeLoadout(campaign);
+  if (campaign.loadout.length !== LOADOUT_SIZE) return;
+  persist();
+  closeAlbum();
+  if (albumIntent === 'duel') beginDuel();
+}
+
+function toggleLoadoutCard(id) {
+  const copies = campaign.player.filter((c) => c.id === id);
+  if (!copies.length) return;
+  const used = new Set(campaign.loadout);
+  const free = copies.find((c) => !used.has(c.uid));
+  if (free) {
+    if (campaign.loadout.length >= LOADOUT_SIZE) return;
+    campaign.loadout = [...campaign.loadout, free.uid];
+  } else {
+    const remove = copies.find((c) => used.has(c.uid));
+    if (!remove) return;
+    campaign.loadout = campaign.loadout.filter((uid) => uid !== remove.uid);
+  }
+  persist();
+  renderAlbum();
+}
+
+function renderIdentitySelect() {
+  if (els.identityGrid) els.identityGrid.innerHTML = renderIdentityGrid(pendingIdentity);
+  if (els.identityConfirm) els.identityConfirm.disabled = !pendingIdentity;
+}
+
+function openIdentity() {
+  pendingIdentity = campaign.identityId || null;
+  els.identity?.classList.remove('hidden');
+  renderIdentitySelect();
+}
+
+function confirmIdentity() {
+  if (!pendingIdentity) return;
+  campaign = bindIdentity(campaign, pendingIdentity);
+  persist();
+  els.identity?.classList.add('hidden');
+  openTitle();
+}
+
 function startMatch() {
+  if (!campaign.identityId) {
+    openIdentity();
+    return;
+  }
   if (campaign.player.length === 0) {
     campaign = resetCampaign(campaign);
     persist();
@@ -259,7 +379,8 @@ function startMatch() {
     openDeathMatch({ fromTitle: true });
     return;
   }
-  beginDuel();
+  campaign.loadout = sanitizeLoadout(campaign);
+  openAlbum('duel');
 }
 
 function hideCardZoom() {
@@ -769,10 +890,39 @@ els.deathBtn?.addEventListener('click', () => openDeathMatch({ fromTitle: true }
 els.deathGo?.addEventListener('click', runDeathMatch);
 els.deathDone?.addEventListener('click', finishDeathMatch);
 
+els.albumBtn?.addEventListener('click', () => openAlbum('browse'));
+els.albumClose?.addEventListener('click', closeAlbum);
+els.albumConfirm?.addEventListener('click', confirmAlbum);
+els.albumGrid?.addEventListener('click', (event) => {
+  const tile = event.target.closest('.album-tile.owned');
+  if (!tile) return;
+  toggleLoadoutCard(tile.dataset.id);
+});
+els.loadoutRow?.addEventListener('click', (event) => {
+  const slot = event.target.closest('.loadout-slot');
+  if (!slot) return;
+  campaign.loadout = campaign.loadout.filter((uid) => uid !== slot.dataset.uid);
+  persist();
+  renderAlbum();
+});
+els.identityBtn?.addEventListener('click', openIdentity);
+els.identityConfirm?.addEventListener('click', confirmIdentity);
+els.identityGrid?.addEventListener('click', (event) => {
+  const pick = event.target.closest('.identity-pick');
+  if (!pick) return;
+  pendingIdentity = pick.dataset.id;
+  renderIdentitySelect();
+});
+
 if (els.titleDeck) {
   els.titleDeck.innerHTML = [0, 1, 2]
     .map((i) => renderCardBack(`title-${i}`, { owner: 'none' }))
     .join('');
 }
 
-renderSetup();
+if (campaign.identityId) {
+  renderSetup();
+} else {
+  els.title.classList.add('hidden');
+  openIdentity();
+}

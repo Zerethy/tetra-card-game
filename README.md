@@ -40,12 +40,16 @@ Each card prints **four side ranks** — Top, Right, Bottom, Left — in hex **1
 | 4 | Beasts | 7 | 22–26 | Bloodmoon Duelist, Rift Stalker |
 | 5 | Elite beasts | 7 | 24–28 | Gravewing, Shard Knight |
 | 6 | Warlords | 8 | 26–30 | Iron Vow, Voidglass Lich |
-| 7 | Warlords | 8 | 28–32 | Cinder Behemoth, Abyssal Countess |
-| 8 | Relics | 9 | 30–34 | Ashen Phoenix, Gilded Colossus |
+| 7 | Warlords | 8 | 28–32 | Abyssal Countess |
+| 8 | Relics | 9 | 30–34 | Cinder Behemoth, Ashen Phoenix, Gilded Colossus |
 | 9 | Relics | A | 32–36 | Runebound Golem |
 | 10 | Sovereigns | A | 34–38 | Hellforge Tyrant, Pearl Seraph |
 
-A **fresh album** is eight **level-1 beasts** (copies of Ember Drake, Nightbloom Witch, and Plaguebloom). You do not start with relics or sovereigns. Stronger cards enter the album when you **win trades**. Names and art are original — no copyrighted FF cards or characters.
+A **fresh album** is your **identity card** plus eight **level-1 beasts** (copies of Ember Drake, Nightbloom Witch, and Plaguebloom). You do not start with relics or sovereigns. Stronger cards enter the album when you **win trades**. Names and art are original — no copyrighted FF cards or characters.
+
+The **Album** lists every roster card: owned copies face-up, unknown cards as silhouettes, plus your identity pinned as **You**. Before **New Match**, pick **five** owned cards for the duel. The five persist in `localStorage`.
+
+**Identity** is chosen at the first title (or via the Identity button). Nine original seekers, one per element, sit at modest level-2 power so the climb still matters. That card always stays in the album and can be one of the five.
 
 All names and illustrations are original dark-fantasy champions — paladins, liches, demon lords, constructs, and boss-like beasts — drawn as SVG, not ripped from other games.
 
@@ -90,18 +94,18 @@ A new save starts at **Stage 1** only. Winning a stage unlocks the next. **Print
 
 | Stage | Rival | Signature band | Deck cap |
 |-------|--------|----------------|----------|
-| 1 | Lady Vesper | Lv1 beasts (weak-tier ultimates) | ≤2 |
+| 1 | Lady Vesper | Lv1 beasts (weak-tier ultimates) | ≤1 |
 | 2 | Sir Galehart | Lv2 beasts | ≤3 |
 | 3 | Cantor Brine | Lv3 beasts | ≤4 |
 | 4 | Hexa of the Rift | Lv4–5 | ≤5 |
 | 5 | Mirror-Abbess | Elite beasts | ≤5 |
-| 6 | Kael the Oathbound | First warlords | ≤6 |
-| 7 | The Veiled Regent | Strong warlords | ≤7 |
+| 6 | Kael the Oathbound | Two elites + one Lv6 spike | ≤6 |
+| 7 | The Veiled Regent | Warlords + one stronger hide | ≤8 |
 | 8 | Warden Ferric | Iron-ward relics | ≤9 |
 | 9 | Duchess Mireveil | Abyss + Pearl Seraph | ≤10 |
-| 10 | Lord Cindervow | Full fire court (Lv7–10) | ≤10 |
+| 10 | Lord Cindervow | **Lv8–10 fire court** (Phoenix, Behemoth, Hellforge) | ≤10 |
 
-Stage 10 is the **hardest** fight, not an unwinnable wall. A climbed album of earned ultimates can beat it with good play. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb.
+Stage 10 is the **hardest** fight, not an unwinnable wall. Cindervow still brings three true Lv8–10 ultimates, but the rest of the wager fills from warlords upward — no eight-card relic brick. A climbed album of earned ultimates can beat it with good play. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb. Vesper’s “ultimates” are the same weak Lv1 beasts you start with.
 
 ### How difficulty is gated
 

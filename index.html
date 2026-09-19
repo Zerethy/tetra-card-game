@@ -62,8 +62,8 @@
         <h2>Aetherbound</h2>
         <div class="title-deck" id="title-deck" aria-hidden="true"></div>
         <p class="lede">
-          Start at Stage 1 with low beasts. Win trades to climb. Later bosses keep their
-          full ultimates — Lord Cindervow at Stage 10 is the hardest fight, not a wall.
+          Choose who you are, then start at Stage 1 with low beasts. Win trades to climb.
+          Boss 1 is weak-tier. Lord Cindervow at Stage 10 is the hardest fight, not a wall.
         </p>
         <div class="setup-panel">
           <p class="setup-label">Trade rule</p>
@@ -78,8 +78,37 @@
         </div>
         <div class="title-actions">
           <button type="button" id="start-btn" class="seal-btn">New Match</button>
+          <button type="button" id="album-btn" class="text-btn">Album</button>
+          <button type="button" id="identity-btn" class="text-btn">Identity</button>
           <button type="button" id="death-btn" class="text-btn">Death Match</button>
           <button type="button" id="title-help-btn" class="text-btn">How to Play</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="album-overlay">
+      <div class="help-card album-card">
+        <h2>Card Album</h2>
+        <p class="lede" id="album-lede">Owned cards are face-up. Unknown cards stay silhouettes. Your identity sits first. Pick five for the next duel.</p>
+        <p class="setup-label">Duel five</p>
+        <div class="loadout-row" id="loadout-row"></div>
+        <p class="collection-line" id="album-progress"></p>
+        <div class="album-grid" id="album-grid"></div>
+        <div class="title-actions">
+          <button type="button" id="album-confirm" class="seal-btn">Use these five</button>
+          <button type="button" id="album-close" class="text-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="identity-overlay">
+      <div class="help-card identity-card">
+        <p class="eyebrow">Who walks the ninefold</p>
+        <h2>Choose Identity</h2>
+        <p class="lede">Pick who you are and your element. That card stays in the album as you — modest early power, yours to include in the five.</p>
+        <div class="identity-grid" id="identity-grid"></div>
+        <div class="title-actions">
+          <button type="button" id="identity-confirm" class="seal-btn" disabled>Bind this name</button>
         </div>
       </div>
     </div>
@@ -94,10 +123,11 @@
           <li><strong>Higher number captures</strong> and flips the enemy card to your color. Ties do nothing. Losing a compare does not cost your card.</li>
           <li>Captured cards can <strong>combo</strong> — they immediately compare their other sides against remaining neighbors.</li>
           <li>The board fills at 9 cards. Highest total of <strong>board + remaining hand</strong> wins.</li>
-          <li>A fresh album is <strong>level-1 beasts</strong>. Winning a stage unlocks the next rival (1 → 10).</li>
+          <li>A fresh album is <strong>your identity</strong> plus <strong>level-1 beasts</strong>. Winning a stage unlocks the next rival (1 → 10).</li>
+          <li>Open the <strong>Album</strong> to inspect owned vs unknown cards and <strong>choose five</strong> for a duel.</li>
         </ol>
         <p class="help-types">
-          Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). You start at Stage 1; Boss 10 keeps a full late kit and is hard, not unwinnable.
+          Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). Boss 1 uses weak-tier Lv1 signatures, beatable with starters. Mid bosses step up and add one stronger ultimate. Boss 10 keeps a full late kit and is hard, not unwinnable.
           Each card prints four ranks on its sides (1–A). Clashes are <strong>higher number wins</strong> (6 beats 3). Elements follow the three wheels on the plaque (tie-break only; never overturn a number gap).
           After a win, <strong>Move On</strong> claims the trade — that is how you earn stronger ultimates. <strong>Death Match</strong> is not required after a clean win — only at one card, or if you opt in for bigger stakes.
         </p>

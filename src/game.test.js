@@ -11,7 +11,7 @@ import {
   elementModifier,
   PLAYER_STARTER_MAX_LEVEL,
 } from './game.js';
-import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf } from './cards.js';
+import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId } from './cards.js';
 import { chooseAiMove } from './ai.js';
 import { renderCard, renderCardBack, renderElementWheel } from './ui.js';
 import {
@@ -30,6 +30,10 @@ import {
   starterCollection,
   isRivalUnlocked,
   STAGE_COUNT,
+  albumProgress,
+  sanitizeLoadout,
+  LOADOUT_SIZE,
+  bindIdentity,
 } from './campaign.js';
 
 function card(partial) {
@@ -436,8 +440,14 @@ test('ten stages climb from weak Vesper to full-power Cindervow', () => {
     assert.ok(levelOf(ROSTER.find((c) => c.id === id)) <= 2, id);
   }
   for (const id of last.ultimates) {
-    assert.ok(levelOf(ROSTER.find((c) => c.id === id)) >= 7, id);
+    assert.ok(levelOf(ROSTER.find((c) => c.id === id)) >= 8, id);
   }
+  assert.equal(first.maxLevel, 1);
+  const vesperDeck = buildBossDeck(first, mulberry32(2));
+  assert.ok(vesperDeck.every((c) => c.level === 1));
+  const cinderDeck = buildBossDeck(last, mulberry32(8));
+  const cinderFill = cinderDeck.filter((c) => !last.ultimates.includes(c.id));
+  assert.ok(cinderFill.some((c) => c.level <= 7), 'Stage 10 fill is not a relic wall');
   assert.ok(last.ultimates.includes('hellforge'));
   for (const boss of BOSSES) {
     assert.equal(boss.ultimates.length, 3, boss.id);
@@ -517,6 +527,28 @@ test('losing a trade removes the chosen cards from the album', () => {
   };
   const next = applyLoss(campaign, ['gone']);
   assert.deepEqual(next.player.map((c) => c.uid), ['keep']);
+});
+
+test('album progress starts at three unique beasts and a five-card loadout', () => {
+  const campaign = emptyCampaign();
+  assert.deepEqual(albumProgress(campaign), { owned: 3, total: 22 });
+  assert.equal(sanitizeLoadout(campaign).length, LOADOUT_SIZE);
+});
+
+test('identity cards are modest, pinned, and cannot be traded away', () => {
+  assert.equal(IDENTITIES.length, 9);
+  for (const card of IDENTITIES) {
+    assert.ok(card.level <= 2, card.id);
+    assert.ok(isIdentityId(card.id));
+    assert.match(loreOf(card).kind, /Identity/);
+  }
+  const bound = bindIdentity(emptyCampaign(), 'you-cinderpath');
+  assert.equal(bound.identityId, 'you-cinderpath');
+  assert.ok(bound.player.some((c) => c.id === 'you-cinderpath'));
+  assert.deepEqual(albumProgress(bound), { owned: 3, total: 22 });
+  const uid = bound.player.find((c) => c.id === 'you-cinderpath').uid;
+  const afterLoss = applyLoss(bound, [uid]);
+  assert.ok(afterLoss.player.some((c) => c.id === 'you-cinderpath'));
 });
 
 test('Death Match showdown always names a winner or a draw', () => {

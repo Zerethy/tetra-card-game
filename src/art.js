@@ -579,6 +579,29 @@ const ART = {
        ${motes('#e8f8ff', [[24, 36, 1.8], [176, 40, 2], [60, 20, 1.3], [140, 30, 1.5]])}`,
     );
   },
+
+  seeker(uid) {
+    return wrap(
+      uid,
+      g(uid, 'sky', '0', '0', '0', '1', [[0, '#1a1428'], [55, '#3a2458'], [100, '#0c0814']]) +
+        g(uid, 'cloak', '0', '0', '0', '1', [[0, '#6a4898'], [55, '#2a1848'], [100, '#12081c']]) +
+        g(uid, 'face', '0', '0', '0', '1', [[0, '#f0d8b4'], [100, '#8a6040']]) +
+        g(uid, 'hood', '0', '0', '1', '1', [[0, '#c8b4e8'], [100, '#3a2060']]),
+      `${sky(uid)}
+       <ellipse cx="100" cy="248" rx="54" ry="16" fill="#0a0610" opacity=".45"/>
+       <path d="M62 262 L72 168 Q100 128 128 168 L138 262 Z" fill="url(#${uid}-cloak)"/>
+       <ellipse cx="100" cy="122" rx="26" ry="30" fill="url(#${uid}-face)"/>
+       <path d="M64 138 Q100 58 136 138 L132 196 Q100 224 68 196 Z" fill="url(#${uid}-hood)" opacity=".96"/>
+       <path d="M74 128 Q100 86 126 128" fill="none" stroke="#1a1028" stroke-width="7" opacity=".35"/>
+       <ellipse cx="90" cy="124" rx="3.2" ry="2.6" fill="#140c18"/>
+       <ellipse cx="110" cy="124" rx="3.2" ry="2.6" fill="#140c18"/>
+       <path d="M88 136 Q100 142 112 136" fill="none" stroke="#4a3020" stroke-width="1.3"/>
+       <path d="M78 176 L56 214 L86 190 Z" fill="#8a70c0"/>
+       <path d="M122 176 L144 214 L114 190 Z" fill="#8a70c0"/>
+       <circle cx="100" cy="168" r="7" fill="#e8d4ff" opacity=".75" filter="url(#${uid}-bloom)"/>
+       ${motes('#e8d4ff', [[70, 78, 1.4, 0.65], [132, 88, 1.1, 0.5], [100, 54, 1.6, 0.7], [48, 160, 1.2, 0.4]])}`,
+    );
+  },
 };
 
 export function creatureSVG(artKey, uid) {

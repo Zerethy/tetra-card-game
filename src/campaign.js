@@ -1,4 +1,4 @@
-import { ROSTER, cardById, levelOf, totalValue } from './cards.js';
+import { ROSTER, cardById, levelOf, totalValue, IDENTITIES, isIdentityId, identityById } from './cards.js';
 import {
   DECK_SIZE,
   PLAYER_STARTER_MAX_LEVEL,
@@ -10,6 +10,7 @@ import {
 
 export const STORAGE_KEY = 'aetherbound-campaign-v2';
 export const STAGE_COUNT = 10;
+export const LOADOUT_SIZE = 5;
 
 export const TRADE_RULES = [
   { id: 'one', name: 'One', blurb: 'Winner chooses 1 card from the loser.' },
@@ -25,9 +26,10 @@ export const BOSSES = [
     name: 'Lady Vesper',
     short: 'Vesper',
     title: 'Pink Rival',
-    blurb: 'Stage 1. Weak-tier signatures. Beatable with starter beasts.',
+    blurb: 'Stage 1. Weakest rival. Low-side Lv1 “ultimates,” beatable with starter Lv1–3 cards.',
+    band: 'Apprentice · Lv1',
     ultimates: ['ember-drake', 'nightbloom', 'plaguebloom'],
-    maxLevel: 2,
+    maxLevel: 1,
   },
   {
     id: 'galehart',
@@ -36,6 +38,7 @@ export const BOSSES = [
     short: 'Galehart',
     title: 'Sky Lance',
     blurb: 'Stage 2. Gale and frost beasts. The first real climb reward.',
+    band: 'Beasts · Lv2',
     ultimates: ['skyraid', 'frost-wraith', 'bone-choir'],
     maxLevel: 3,
   },
@@ -46,6 +49,7 @@ export const BOSSES = [
     short: 'Brine',
     title: 'Red Tide',
     blurb: 'Stage 3. Tide, thunder, and thorn. Mid-beast signatures.',
+    band: 'Beasts · Lv3',
     ultimates: ['tidebreaker', 'stormglass', 'thornwake'],
     maxLevel: 4,
   },
@@ -55,7 +59,8 @@ export const BOSSES = [
     name: 'Hexa of the Rift',
     short: 'Hexa',
     title: 'Between-Worlds',
-    blurb: 'Stage 4. Crimson step and rift-walk. Mid difficulty.',
+    blurb: 'Stage 4. Two mid beasts and one stronger elite.',
+    band: 'Elites · Lv4–5',
     ultimates: ['bloodmoon', 'rift-stalker', 'gravewing'],
     maxLevel: 5,
   },
@@ -66,6 +71,7 @@ export const BOSSES = [
     short: 'Abbess',
     title: 'Glass Psalm',
     blurb: 'Stage 5. Ice and bone elites. One step below warlords.',
+    band: 'Elites · Lv5',
     ultimates: ['shard-knight', 'gravewing', 'rift-stalker'],
     maxLevel: 5,
   },
@@ -75,8 +81,9 @@ export const BOSSES = [
     name: 'Kael the Oathbound',
     short: 'Kael',
     title: 'First Vow',
-    blurb: 'Stage 6. The first warlords. Unlocked after the beast climb.',
-    ultimates: ['iron-vow', 'voidglass', 'shard-knight'],
+    blurb: 'Stage 6. Two elites and one warlord spike.',
+    band: 'Warlord spike · Lv6',
+    ultimates: ['shard-knight', 'gravewing', 'iron-vow'],
     maxLevel: 6,
   },
   {
@@ -85,9 +92,10 @@ export const BOSSES = [
     name: 'The Veiled Regent',
     short: 'Regent',
     title: 'Velvet Host',
-    blurb: 'Stage 7. Furnace hide and velvet cataclysm. One strong warlord each.',
-    ultimates: ['cinder-behemoth', 'abyssal-countess', 'voidglass'],
-    maxLevel: 7,
+    blurb: 'Stage 7. Warlords plus one stronger relic-bound hide.',
+    band: 'Warlords · Lv7–8',
+    ultimates: ['abyssal-countess', 'voidglass', 'cinder-behemoth'],
+    maxLevel: 8,
   },
   {
     id: 'ferric',
@@ -96,6 +104,7 @@ export const BOSSES = [
     short: 'Ferric',
     title: 'Law of Iron',
     blurb: 'Stage 8. Oath, gilt, and stone. Full iron-ward ultimates.',
+    band: 'Iron ward · Lv6–9',
     ultimates: ['iron-vow', 'gilded-colossus', 'runebound'],
     maxLevel: 9,
   },
@@ -106,6 +115,7 @@ export const BOSSES = [
     short: 'Mireveil',
     title: 'Tide of Veils',
     blurb: 'Stage 9. Velvet abyss, last phylactery, and a stolen dawn.',
+    band: 'Abyss · Lv6–10',
     ultimates: ['voidglass', 'abyssal-countess', 'pearl-seraph'],
     maxLevel: 10,
   },
@@ -115,7 +125,8 @@ export const BOSSES = [
     name: 'Lord Cindervow',
     short: 'Cindervow',
     title: 'Ember Liege',
-    blurb: 'Stage 10. Hardest fight — full fire court. Beatable with a climbed album.',
+    blurb: 'Stage 10. Full fire court — Phoenix, Behemoth, Hellforge. Hardest fight, still beatable.',
+    band: 'Sovereign · Lv8–10',
     ultimates: ['cinder-behemoth', 'ashen-phoenix', 'hellforge'],
     maxLevel: 10,
   },
@@ -213,7 +224,9 @@ export function bossFillMinLevel(boss) {
   const cap = boss?.maxLevel ?? 10;
   const stage = boss?.stage || 1;
   if (stage <= 3) return 1;
-  return Math.max(1, cap - 2);
+  if (stage <= 6) return Math.max(1, cap - 2);
+  if (stage <= 9) return Math.max(1, cap - 3);
+  return 6;
 }
 
 export function buildBossDeck(boss, rng) {
@@ -250,15 +263,59 @@ export function starterCollection(seed = 0xa37e4) {
   return picks.map(ownedFromTemplate);
 }
 
-export function emptyCampaign() {
-  return {
-    player: starterCollection(),
+export function uniqueOwnedIds(campaign) {
+  return [
+    ...new Set(
+      (campaign?.player || [])
+        .map((c) => c.id)
+        .filter((id) => cardById(id) && !isIdentityId(id)),
+    ),
+  ];
+}
+
+export function albumProgress(campaign) {
+  return { owned: uniqueOwnedIds(campaign).length, total: ROSTER.length };
+}
+
+export function sanitizeLoadout(campaign) {
+  const have = new Set((campaign?.player || []).map((c) => c.uid));
+  let loadout = (campaign?.loadout || []).filter((uid) => have.has(uid));
+  if (loadout.length >= LOADOUT_SIZE) return loadout.slice(0, LOADOUT_SIZE);
+  const hydrated = (campaign?.player || []).map(hydrateOwned).filter(Boolean);
+  for (const card of pickWager(hydrated, LOADOUT_SIZE, mulberry32(0x51a1))) {
+    if (loadout.length >= LOADOUT_SIZE) break;
+    if (!loadout.includes(card.uid)) loadout.push(card.uid);
+  }
+  return loadout.slice(0, LOADOUT_SIZE);
+}
+
+export function bindIdentity(campaign, identityId) {
+  const ident = identityById(identityId);
+  const player = (campaign?.player || []).filter((c) => !isIdentityId(c.id));
+  const next = {
+    ...campaign,
+    identityId: ident.id,
+    player: [ownedFromTemplate(ident), ...player],
+  };
+  next.loadout = sanitizeLoadout(next);
+  return next;
+}
+
+export function emptyCampaign(options = {}) {
+  const player = starterCollection();
+  const campaign = {
+    player,
     trade: 'one',
     rival: 'vesper',
     claimedUltimates: [],
     offerDeathMatch: false,
     unlockedStage: 1,
+    loadout: [],
+    identityId: null,
   };
+  if (options.identityId) return bindIdentity(campaign, options.identityId);
+  campaign.loadout = sanitizeLoadout(campaign);
+  return campaign;
 }
 
 export function isRivalUnlocked(boss, unlockedStage) {
@@ -283,6 +340,10 @@ export function loadCampaign() {
     if (!isRivalUnlocked(bossById(rival), unlockedStage)) {
       rival = [...BOSSES].filter((b) => isRivalUnlocked(b, unlockedStage)).pop()?.id || 'vesper';
     }
+    const identityId = IDENTITIES.some((i) => i.id === parsed.identityId) ? parsed.identityId : null;
+    if (identityId && !player.some((c) => c.id === identityId)) {
+      player.unshift(ownedFromTemplate(identityById(identityId)));
+    }
     return {
       player,
       trade: TRADE_RULES.some((r) => r.id === parsed.trade) ? parsed.trade : 'one',
@@ -290,6 +351,11 @@ export function loadCampaign() {
       claimedUltimates: Array.isArray(parsed.claimedUltimates) ? parsed.claimedUltimates : [],
       offerDeathMatch: Boolean(parsed.offerDeathMatch),
       unlockedStage,
+      identityId,
+      loadout: sanitizeLoadout({
+        player,
+        loadout: Array.isArray(parsed.loadout) ? parsed.loadout : [],
+      }),
     };
   } catch {
     return emptyCampaign();
@@ -310,6 +376,8 @@ export function resetCampaign(campaign) {
   next.rival = 'vesper';
   next.offerDeathMatch = Boolean(campaign?.offerDeathMatch);
   next.unlockedStage = 1;
+  if (campaign?.identityId) return bindIdentity(next, campaign.identityId);
+  next.loadout = sanitizeLoadout(next);
   return next;
 }
 
@@ -327,22 +395,26 @@ export function markClaimedUltimates(campaign, claimed, boss) {
 
 export function applyLoss(campaign, uids) {
   const drop = new Set(uids);
-  return {
+  const next = {
     ...campaign,
-    player: campaign.player.filter((c) => !drop.has(c.uid)),
+    player: campaign.player.filter((c) => !drop.has(c.uid) || isIdentityId(c.id)),
   };
+  next.loadout = sanitizeLoadout(next);
+  return next;
 }
 
 export function applyWin(campaign, claimed, boss) {
   const additions = claimed.map((c) => ownedFromTemplate(c));
   const cleared = boss?.stage || 1;
   const unlockedStage = Math.min(STAGE_COUNT, Math.max(campaign.unlockedStage || 1, cleared + 1));
-  return {
+  const next = {
     ...campaign,
     player: [...campaign.player, ...additions],
     claimedUltimates: markClaimedUltimates(campaign, claimed, boss),
     unlockedStage,
   };
+  next.loadout = sanitizeLoadout(next);
+  return next;
 }
 
 export function resolveShowdown(playerCard, aiCard, rng) {

@@ -1,4 +1,4 @@
-import { hexDigit, rarityOf, frameOf, loreOf, levelOf, ELEMENT_RINGS, cardById, totalValue } from './cards.js';
+import { hexDigit, rarityOf, frameOf, loreOf, levelOf, ELEMENT_RINGS, cardById, totalValue, ROSTER, IDENTITIES, isIdentityId } from './cards.js';
 import { creatureSVG, cardBackSVG, elementGlyph } from './art.js';
 
 function escapeText(value) {
@@ -23,6 +23,7 @@ export function renderCard(card, options = {}) {
   const selected = options.selected ? ' selected' : '';
   const captured = options.captured ? ' just-captured' : '';
   const placed = options.placed ? ' just-placed' : '';
+  const you = card.identity || isIdentityId(card.id) ? ' identity-you' : '';
   const el = card.element
     ? `<div class="tm-el el-${card.element}" title="${escapeText(card.element)}"><span class="el-face">${elementGlyph(card.element)}</span></div>`
     : `<div class="tm-el el-none" title="No element"></div>`;
@@ -33,7 +34,7 @@ export function renderCard(card, options = {}) {
   const level = levelOf(card);
   const kindParts = lore.kind.includes(' — ') ? lore.kind.split(' — ') : ['Beast', lore.kind];
 
-  return `<article class="tm-card owner-${owner} rarity-${rarity} frame-${frame}${selected}${captured}${placed}" data-instance="${card.instanceId}" data-id="${card.id}" data-rarity="${rarity}" data-level="${level}">
+  return `<article class="tm-card owner-${owner} rarity-${rarity} frame-${frame}${selected}${captured}${placed}${you}" data-instance="${card.instanceId}" data-id="${card.id}" data-rarity="${rarity}" data-level="${level}">
     <div class="tm-bevel">
       <div class="tm-gilt">
         <div class="tm-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
@@ -65,6 +66,7 @@ export function renderCard(card, options = {}) {
         </div>
       </div>
     </div>
+    ${card.identity || isIdentityId(card.id) ? '<span class="you-tag">You</span>' : ''}
   </article>`;
 }
 
@@ -139,9 +141,67 @@ export function renderUltimateStrip(boss, claimedIds = []) {
     return `<div class="ultimate-slot${owned}" data-id="${id}">${html}<span class="ult-tag">Ultimate</span></div>`;
   });
   const names = boss.ultimates.map((id) => escapeText(cardTemplate(id).name)).join(' · ');
-  return `<p class="setup-label">${escapeText(boss.name)}’s ultimates</p>
+  const band = boss.band ? ` · ${escapeText(boss.band)}` : '';
+  return `<p class="setup-label">Stage ${boss.stage || '?'}${band}</p>
     <div class="ultimate-row">${cards.join('')}</div>
-    <p class="ultimate-names">${names}</p>`;
+    <p class="ultimate-names">${escapeText(boss.name)} — ${names}</p>`;
+}
+
+export function renderAlbumLocked(card) {
+  return `<article class="tm-card album-locked frame-void" data-id="${escapeText(card.id)}" aria-label="Unknown card">
+    <div class="tm-bevel"><div class="tm-gilt">
+      <div class="tm-art tm-art-full album-silhouette"></div>
+      <p class="album-unknown">???</p>
+    </div></div>
+  </article>`;
+}
+
+export function renderAlbumGrid(campaign, loadout = []) {
+  const selected = new Set(loadout);
+  const copiesById = new Map();
+  for (const owned of campaign.player || []) {
+    const list = copiesById.get(owned.id) || [];
+    list.push(owned);
+    copiesById.set(owned.id, list);
+  }
+  const identityOwned = (campaign.player || []).find((c) => isIdentityId(c.id));
+  const identityTile = identityOwned
+    ? (() => {
+        const card = cardById(identityOwned.id);
+        const inLoadout = selected.has(identityOwned.uid);
+        const view = { ...card, uid: identityOwned.uid, instanceId: identityOwned.uid, owner: 'player' };
+        return `<button type="button" class="album-tile owned identity-tile${inLoadout ? ' in-loadout' : ''}" data-id="${escapeText(card.id)}">
+        ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
+        <span class="album-count">You · ${inLoadout ? 'in five' : 'owned'}</span>
+      </button>`;
+      })()
+    : '';
+  const tiles = ROSTER.slice()
+    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name))
+    .map((card) => {
+      const copies = copiesById.get(card.id) || [];
+      if (!copies.length) {
+        return `<div class="album-tile locked" data-id="${escapeText(card.id)}">${renderAlbumLocked(card)}</div>`;
+      }
+      const inLoadout = copies.filter((c) => selected.has(c.uid)).length;
+      const view = { ...card, uid: copies[0].uid, instanceId: copies[0].uid, owner: 'player' };
+      return `<button type="button" class="album-tile owned${inLoadout ? ' in-loadout' : ''}" data-id="${escapeText(card.id)}">
+        ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
+        <span class="album-count">${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ''}</span>
+      </button>`;
+    });
+  return identityTile + tiles.join('');
+}
+
+export function renderIdentityGrid(selectedId) {
+  return IDENTITIES.map((card) => {
+    const view = { ...card, instanceId: card.id, owner: 'player' };
+    const sel = selectedId === card.id ? ' selected' : '';
+    return `<button type="button" class="identity-pick${sel}" data-id="${escapeText(card.id)}" title="${escapeText(card.vibe)}">
+      ${renderCard(view, { surface: `id-${card.id}`, owner: 'player', showName: true })}
+      <span class="identity-vibe">${escapeText(card.vibe)}</span>
+    </button>`;
+  }).join('');
 }
 
 function cardTemplate(id) {

@@ -136,9 +136,9 @@ export const ROSTER = [
     id: 'cinder-behemoth',
     name: 'Cinder Behemoth',
     title: 'Furnace Hide',
-    level: 7,
+    level: 8,
     top: 8,
-    right: 7,
+    right: 8,
     bottom: 7,
     left: 8,
     element: 'fire',
@@ -302,13 +302,154 @@ export const ROSTER = [
   },
 ];
 
+/**
+ * Player-character cards. Modest Lv2 power — a named “you,” not a Stage 10 sovereign.
+ * Kept off ROSTER so bosses never deal them.
+ */
+export const IDENTITIES = [
+  {
+    id: 'you-cinderpath',
+    name: 'Cinderpath',
+    title: 'Ash Pilgrim',
+    vibe: 'A spark-sworn wanderer. The first coal still answers.',
+    level: 2,
+    top: 6,
+    right: 5,
+    bottom: 3,
+    left: 4,
+    element: 'fire',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-rimewake',
+    name: 'Rimewake',
+    title: 'Hollow Squire',
+    vibe: 'Keeps a vow that froze before it finished.',
+    level: 2,
+    top: 4,
+    right: 3,
+    bottom: 5,
+    left: 6,
+    element: 'ice',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-tidevow',
+    name: 'Tidevow',
+    title: 'Salt Cantor',
+    vibe: 'Sings the red current and bargains with wrecks.',
+    level: 2,
+    top: 3,
+    right: 5,
+    bottom: 6,
+    left: 4,
+    element: 'water',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-galesworn',
+    name: 'Galesworn',
+    title: 'Sky Courier',
+    vibe: 'Carries oaths the wind refuses to drop.',
+    level: 2,
+    top: 6,
+    right: 4,
+    bottom: 3,
+    left: 5,
+    element: 'wind',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-rootbound',
+    name: 'Rootbound',
+    title: 'Grove Knight',
+    vibe: 'A hedge-oath. The orchard knighted them first.',
+    level: 2,
+    top: 3,
+    right: 4,
+    bottom: 6,
+    left: 5,
+    element: 'earth',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-sparkclerk',
+    name: 'Sparkclerk',
+    title: 'Storm Scribe',
+    vibe: 'Writes verdicts the thunder has not yet spoken.',
+    level: 2,
+    top: 5,
+    right: 6,
+    bottom: 3,
+    left: 4,
+    element: 'thunder',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-dawnkept',
+    name: 'Dawnkept',
+    title: 'Chapel Orphan',
+    vibe: 'Raised under a cracked rose window. Still keeps hours.',
+    level: 2,
+    top: 6,
+    right: 4,
+    bottom: 5,
+    left: 3,
+    element: 'holy',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-veilkept',
+    name: 'Veilkept',
+    title: 'Night Apprentice',
+    vibe: 'Learned their name on the wrong side of dusk.',
+    level: 2,
+    top: 5,
+    right: 3,
+    bottom: 4,
+    left: 6,
+    element: 'dark',
+    art: 'seeker',
+    identity: true,
+  },
+  {
+    id: 'you-rotbriar',
+    name: 'Rotbriar',
+    title: 'Sweet-Thorn',
+    vibe: 'A hedge-witch. The briar pays rent in small mercies.',
+    level: 2,
+    top: 4,
+    right: 5,
+    bottom: 6,
+    left: 3,
+    element: 'poison',
+    art: 'seeker',
+    identity: true,
+  },
+];
+
+export function isIdentityId(id) {
+  return IDENTITIES.some((card) => card.id === id);
+}
+
+export function identityById(id) {
+  return IDENTITIES.find((card) => card.id === id) || IDENTITIES[0];
+}
+
 export function hexDigit(n) {
   const clamped = Math.max(0, Math.min(15, n | 0));
   return '0123456789ABCDEF'[clamped];
 }
 
 export function cardById(id) {
-  return ROSTER.find((c) => c.id === id);
+  return ROSTER.find((c) => c.id === id) || IDENTITIES.find((c) => c.id === id);
 }
 
 /**
@@ -478,18 +619,55 @@ const LORE = {
     kind: 'Champion — Glass Crusade',
     flavor: 'Every plate is a frozen vow. They crack before they yield.',
   },
+  'you-cinderpath': {
+    kind: 'Identity — Ash Pilgrim',
+    flavor: 'A spark-sworn wanderer. The first coal still answers.',
+  },
+  'you-rimewake': {
+    kind: 'Identity — Hollow Squire',
+    flavor: 'Keeps a vow that froze before it finished.',
+  },
+  'you-tidevow': {
+    kind: 'Identity — Salt Cantor',
+    flavor: 'Sings the red current and bargains with wrecks.',
+  },
+  'you-galesworn': {
+    kind: 'Identity — Sky Courier',
+    flavor: 'Carries oaths the wind refuses to drop.',
+  },
+  'you-rootbound': {
+    kind: 'Identity — Grove Knight',
+    flavor: 'A hedge-oath. The orchard knighted them first.',
+  },
+  'you-sparkclerk': {
+    kind: 'Identity — Storm Scribe',
+    flavor: 'Writes verdicts the thunder has not yet spoken.',
+  },
+  'you-dawnkept': {
+    kind: 'Identity — Chapel Orphan',
+    flavor: 'Raised under a cracked rose window. Still keeps hours.',
+  },
+  'you-veilkept': {
+    kind: 'Identity — Night Apprentice',
+    flavor: 'Learned their name on the wrong side of dusk.',
+  },
+  'you-rotbriar': {
+    kind: 'Identity — Sweet-Thorn',
+    flavor: 'A hedge-witch. The briar pays rent in small mercies.',
+  },
 };
 
 export function loreOf(card) {
   const catalog = card?.id ? cardById(card.id) : null;
   const view = { ...catalog, ...card };
   const stored = LORE[view?.id];
-  const left = tierLabel(view);
+  const identity = Boolean(view?.identity) || isIdentityId(view?.id);
+  const left = identity ? 'Identity' : tierLabel(view);
   const right = stored?.kind?.includes(' — ')
     ? stored.kind.split(' — ')[1]
     : stored?.kind || view?.title || 'Relic';
   return {
     kind: `${left} — ${right}`,
-    flavor: stored?.flavor || view?.title || 'A champion bound to the ninefold grid.',
+    flavor: stored?.flavor || view?.vibe || view?.title || 'A champion bound to the ninefold grid.',
   };
 }
