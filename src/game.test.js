@@ -318,6 +318,24 @@ test('every roster card sits inside its level band', () => {
   }
 });
 
+test('same-level cards stay close in total and have no glass-cannon sides', () => {
+  const byLevel = new Map();
+  for (const card of ROSTER) {
+    const list = byLevel.get(card.level) || [];
+    list.push(card);
+    byLevel.set(card.level, list);
+    const sides = [card.top, card.right, card.bottom, card.left];
+    const floor = card.level <= 2 ? 3 : 4;
+    assert.ok(Math.min(...sides) >= floor, `${card.id} soft side ${Math.min(...sides)}`);
+    assert.ok(new Set(sides).size > 1, `${card.id} is an even quad`);
+  }
+  for (const [level, cards] of byLevel) {
+    const totals = cards.map((c) => totalValue(c));
+    const spread = Math.max(...totals) - Math.min(...totals);
+    assert.ok(spread <= 2, `level ${level} totals ${totals.join(',')} spread ${spread}`);
+  }
+});
+
 test('roster cards only store four side ranks', () => {
   const allowed = new Set(['id', 'name', 'title', 'level', 'top', 'right', 'bottom', 'left', 'element', 'art']);
   for (const card of ROSTER) {
@@ -442,7 +460,7 @@ test('createMatch can wager custom decks and skip empty hands', () => {
 test('preferUltimates floats a boss signature first', () => {
   const sorted = preferUltimates(
     [
-      { id: 'ember-drake', level: 1, top: 5, right: 5, bottom: 2, left: 3 },
+      { id: 'ember-drake', level: 1, top: 5, right: 5, bottom: 3, left: 4 },
       { id: 'hellforge', level: 10, top: 10, right: 9, bottom: 8, left: 8 },
     ],
     ['hellforge'],

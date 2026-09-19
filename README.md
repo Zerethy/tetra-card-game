@@ -30,7 +30,7 @@ npm run build # production bundle
 
 Each card prints **four side ranks** — Top, Right, Bottom, Left — in hex **1–A** (1–10), like a Triple Triad layout. Some cards also show an **element** glyph in the upper-right. A numbered **level badge** sits beside the gem (1–10).
 
-**Total value** is Top + Right + Bottom + Left. Rank ceiling is the highest of those four.
+**Total value** is Top + Right + Bottom + Left. Rank ceiling is the highest of those four. Cards in the same level sit within about **2 total** of each other. The softest side is at least **3** on levels 1–2 and **4** from level 3 up — no random 2-sides, and mid-tier cards keep a slight asymmetry instead of even quads.
 
 | Level | Role | Rank ceiling | Total value | Aetherbound examples |
 |-------|------|--------------|-------------|----------------------|
