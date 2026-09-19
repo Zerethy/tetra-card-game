@@ -32,8 +32,14 @@ import {
   STAGE_COUNT,
   albumProgress,
   sanitizeLoadout,
+  pruneLoadout,
+  identityUid,
   LOADOUT_SIZE,
   bindIdentity,
+  dragAlbumToSlot,
+  moveLoadoutIndex,
+  removeLoadoutUid,
+  swapLoadoutWithAlbum,
 } from './campaign.js';
 
 function card(partial) {
@@ -611,6 +617,43 @@ test('identity cards are strong signatures, pinned, and cannot be traded away', 
   assert.ok(bound.loadout.includes(uid));
   const afterLoss = applyLoss(bound, [uid]);
   assert.ok(afterLoss.player.some((c) => c.id === 'you-cinderpath'));
+  const grid = renderAlbumGrid(fresh, fresh.loadout);
+  assert.match(grid, /identity-tile/);
+  assert.match(grid, /data-uid="/);
+  assert.match(grid, /pinned/);
+});
+
+test('album loadout drag adds, replaces, reorders, and refuses to drop identity', () => {
+  const campaign = emptyCampaign();
+  const you = identityUid(campaign);
+  assert.ok(you);
+  const beasts = campaign.player.filter((c) => c.id === 'ember-drake');
+  assert.ok(beasts.length >= 2);
+  const withoutEmber = {
+    ...campaign,
+    loadout: [you, ...campaign.player.filter((c) => !isIdentityId(c.id) && c.id !== 'ember-drake').slice(0, 3).map((c) => c.uid)],
+  };
+  const added = dragAlbumToSlot(withoutEmber, 'ember-drake', withoutEmber.loadout.length);
+  assert.ok(added.loadout.includes(beasts[0].uid) || added.loadout.includes(beasts[1].uid));
+  assert.ok(added.loadout.includes(you));
+  const youIndex = added.loadout.indexOf(you);
+  const blocked = dragAlbumToSlot(added, 'ember-drake', youIndex);
+  assert.equal(blocked.loadout[youIndex], you);
+  const moved = moveLoadoutIndex(added, 0, added.loadout.length - 1);
+  assert.equal(moved.loadout[moved.loadout.length - 1], added.loadout[0]);
+  const stripped = removeLoadoutUid(added, you);
+  assert.ok(stripped.loadout.includes(you));
+  const other = added.loadout.find((uid) => uid !== you);
+  const removed = removeLoadoutUid(added, other);
+  assert.equal(removed.loadout.includes(other), false);
+  assert.ok(removed.loadout.includes(you));
+  const swapFrom = removed.loadout.find((uid) => {
+    const card = removed.player.find((c) => c.uid === uid);
+    return card && uid !== you && card.id !== 'nightbloom';
+  });
+  const swapped = swapLoadoutWithAlbum(removed, swapFrom, 'nightbloom');
+  assert.ok(swapped.player.filter((c) => swapped.loadout.includes(c.uid)).some((c) => c.id === 'nightbloom'));
+  assert.equal(pruneLoadout(removed).includes(other), false);
 });
 
 test('Death Match showdown always names a winner or a draw', () => {

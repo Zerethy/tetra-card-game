@@ -286,9 +286,26 @@ export function albumProgress(campaign) {
   return { owned: uniqueOwnedIds(campaign).length, total: ROSTER.length };
 }
 
-export function sanitizeLoadout(campaign) {
+export function pruneLoadout(campaign) {
   const have = new Set((campaign?.player || []).map((c) => c.uid));
-  let loadout = (campaign?.loadout || []).filter((uid) => have.has(uid));
+  return (campaign?.loadout || []).filter((uid) => have.has(uid)).slice(0, LOADOUT_SIZE);
+}
+
+export function identityUid(campaign) {
+  return (campaign?.player || []).find((c) => isIdentityId(c.id))?.uid || null;
+}
+
+export function firstFreeCopy(campaign, cardId, loadout = campaign?.loadout) {
+  const used = new Set(loadout || []);
+  return (campaign?.player || []).find((c) => c.id === cardId && !used.has(c.uid)) || null;
+}
+
+export function sanitizeLoadout(campaign) {
+  let loadout = pruneLoadout(campaign);
+  const you = identityUid(campaign);
+  if (you && !loadout.includes(you)) {
+    loadout = [you, ...loadout.filter((uid) => uid !== you)].slice(0, LOADOUT_SIZE);
+  }
   if (loadout.length >= LOADOUT_SIZE) return loadout.slice(0, LOADOUT_SIZE);
   const hydrated = (campaign?.player || []).map(hydrateOwned).filter(Boolean);
   for (const card of pickWager(hydrated, LOADOUT_SIZE, mulberry32(0x51a1))) {
@@ -296,6 +313,58 @@ export function sanitizeLoadout(campaign) {
     if (!loadout.includes(card.uid)) loadout.push(card.uid);
   }
   return loadout.slice(0, LOADOUT_SIZE);
+}
+
+export function moveLoadoutIndex(campaign, fromIndex, toIndex) {
+  const loadout = pruneLoadout(campaign);
+  if (!Number.isInteger(fromIndex) || fromIndex < 0 || fromIndex >= loadout.length) return campaign;
+  if (!Number.isInteger(toIndex) || toIndex < 0) return campaign;
+  const next = loadout.slice();
+  const [item] = next.splice(fromIndex, 1);
+  const dest = Math.min(toIndex, next.length);
+  next.splice(dest, 0, item);
+  return { ...campaign, loadout: next };
+}
+
+export function removeLoadoutUid(campaign, uid) {
+  const you = identityUid(campaign);
+  if (!uid || uid === you) return campaign;
+  return { ...campaign, loadout: pruneLoadout(campaign).filter((entry) => entry !== uid) };
+}
+
+export function dragAlbumToSlot(campaign, cardId, slotIndex) {
+  if (!cardId || !Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= LOADOUT_SIZE) {
+    return campaign;
+  }
+  const loadout = pruneLoadout(campaign);
+  const you = identityUid(campaign);
+  const free = firstFreeCopy(campaign, cardId, loadout);
+  if (free) {
+    if (slotIndex >= loadout.length) {
+      if (loadout.length >= LOADOUT_SIZE) return campaign;
+      return { ...campaign, loadout: [...loadout, free.uid] };
+    }
+    const occupant = loadout[slotIndex];
+    if (occupant === you && free.uid !== you) return campaign;
+    const next = loadout.slice();
+    next[slotIndex] = free.uid;
+    return { ...campaign, loadout: next };
+  }
+  const existingIdx = loadout.findIndex((uid) => campaign.player.find((card) => card.uid === uid)?.id === cardId);
+  if (existingIdx >= 0) {
+    return moveLoadoutIndex({ ...campaign, loadout }, existingIdx, Math.min(slotIndex, loadout.length - 1));
+  }
+  return campaign;
+}
+
+export function swapLoadoutWithAlbum(campaign, fromUid, albumId) {
+  const loadout = pruneLoadout(campaign);
+  const fromIndex = loadout.indexOf(fromUid);
+  if (fromIndex < 0) return campaign;
+  if (fromUid === identityUid(campaign)) return campaign;
+  const occupant = campaign.player.find((card) => card.uid === fromUid);
+  if (occupant?.id === albumId) return campaign;
+  return dragAlbumToSlot({ ...campaign, loadout }, albumId, fromIndex);
 }
 
 export function bindIdentity(campaign, identityId) {

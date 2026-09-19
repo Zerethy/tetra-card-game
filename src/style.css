@@ -1483,10 +1483,24 @@ button {
   border: 0;
   background: transparent;
   cursor: pointer;
+  touch-action: none;
 }
 
 .album-tile.locked {
   cursor: default;
+  touch-action: auto;
+}
+
+.album-tile.available {
+  cursor: grab;
+}
+
+.album-tile.available .tm-card {
+  box-shadow: 0 0 0 2px rgba(122, 32, 200, 0.35);
+}
+
+.album-tile.seated {
+  cursor: grab;
 }
 
 .album-tile .tm-card {
@@ -1496,6 +1510,11 @@ button {
 
 .album-tile.in-loadout .tm-card {
   box-shadow: 0 0 0 3px #7a20c8, 0 0 14px rgba(180, 40, 255, 0.5);
+}
+
+.album-tile.seated .album-count {
+  color: #7a20c8;
+  font-weight: 700;
 }
 
 .album-count {
@@ -1521,13 +1540,28 @@ button {
   letter-spacing: 0.2em;
 }
 
-.loadout-row {
+.loadout-hint {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: #6a4820;
+  font-weight: 600;
+}
+
+.loadout-row,
+.deck-tray {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
   min-height: 132px;
   margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(122, 32, 200, 0.06);
+  outline: 1px dashed rgba(90, 56, 16, 0.35);
 }
 
 .loadout-slot {
@@ -1537,7 +1571,8 @@ button {
   border: 1px dashed #5a3810;
   border-radius: 8px;
   background: rgba(255, 248, 220, 0.2);
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
 }
 
 .loadout-slot .tm-card {
@@ -1548,6 +1583,54 @@ button {
 .loadout-slot.empty {
   cursor: default;
   opacity: 0.55;
+  touch-action: auto;
+}
+
+.loadout-slot.pinned {
+  outline: 2px solid #d4a84a;
+}
+
+.loadout-slot.drop-ok,
+.album-tile.drop-ok,
+#album-grid.drop-ok {
+  box-shadow: 0 0 0 3px #2f8f4e, 0 0 16px rgba(60, 180, 90, 0.45);
+}
+
+.loadout-slot.drop-block,
+.album-tile.drop-block {
+  box-shadow: 0 0 0 3px #a03030, 0 0 12px rgba(180, 40, 40, 0.4);
+}
+
+.album-tile.is-dragging,
+.loadout-slot.is-dragging {
+  opacity: 0.4;
+}
+
+.deck-drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 80px;
+  height: 112px;
+  pointer-events: none;
+  z-index: 80;
+  opacity: 0.94;
+  filter: drop-shadow(0 12px 18px rgba(40, 0, 60, 0.5));
+}
+
+.deck-drag-ghost .tm-card {
+  width: 100%;
+  height: 100%;
+}
+
+body.deck-dragging,
+body.deck-dragging * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+body.deck-dragging .card-zoom {
+  display: none !important;
 }
 
 .album-tile.identity-tile .tm-card,

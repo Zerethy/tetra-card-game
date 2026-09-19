@@ -170,7 +170,8 @@ export function renderAlbumGrid(campaign, loadout = []) {
         const card = cardById(identityOwned.id);
         const inLoadout = selected.has(identityOwned.uid);
         const view = { ...card, uid: identityOwned.uid, instanceId: identityOwned.uid, owner: 'player' };
-        return `<button type="button" class="album-tile owned identity-tile${inLoadout ? ' in-loadout' : ''}" data-id="${escapeText(card.id)}">
+        const seat = inLoadout ? ' seated' : ' available';
+        return `<button type="button" class="album-tile owned identity-tile pinned${inLoadout ? ' in-loadout' : ''}${seat}" data-id="${escapeText(card.id)}" data-uid="${escapeText(identityOwned.uid)}" data-pinned="1">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
         <span class="album-count">You · ${inLoadout ? 'in five' : 'owned'}</span>
       </button>`;
@@ -184,10 +185,12 @@ export function renderAlbumGrid(campaign, loadout = []) {
         return `<div class="album-tile locked" data-id="${escapeText(card.id)}">${renderAlbumLocked(card)}</div>`;
       }
       const inLoadout = copies.filter((c) => selected.has(c.uid)).length;
+      const free = copies.find((c) => !selected.has(c.uid)) || copies[0];
+      const seated = inLoadout === copies.length;
       const view = { ...card, uid: copies[0].uid, instanceId: copies[0].uid, owner: 'player' };
-      return `<button type="button" class="album-tile owned${inLoadout ? ' in-loadout' : ''}" data-id="${escapeText(card.id)}">
+      return `<button type="button" class="album-tile owned${inLoadout ? ' in-loadout' : ''}${seated ? ' seated' : ' available'}" data-id="${escapeText(card.id)}" data-uid="${escapeText(free.uid)}">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
-        <span class="album-count">${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ''}</span>
+        <span class="album-count">${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ' · drag in'}</span>
       </button>`;
     });
   return identityTile + tiles.join('');
