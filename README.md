@@ -105,7 +105,7 @@ A new save starts at **Stage 1** only. Winning a stage unlocks the next. **Print
 | 9 | Duchess Mireveil | Abyss + Pearl Seraph | ≤10 |
 | 10 | Lord Cindervow | **Lv8–10 fire court** (Phoenix, Behemoth, Hellforge) | ≤10 |
 
-Stage 10 is the **hardest** fight, not an unwinnable wall. Cindervow still brings three true Lv8–10 ultimates, but the rest of the wager fills from warlords upward — no eight-card relic brick. A climbed album of earned ultimates can beat it with good play. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb. Vesper’s “ultimates” are the same weak Lv1 beasts you start with.
+Stage 10 is the **hardest** fight, not an unwinnable wall. Cindervow still brings three true Lv8–10 ultimates. The other five cards are warlords and relics — no second Hellforge, no extra Pearl Seraph, no eight-card 8–A brick. A climbed album of earned ultimates (Seraph, Runebound, Colossus, and the rest) can beat it with good play. Challenge is stronger cards plus the AI, not brick-wall RNG. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb. Vesper’s “ultimates” are the same weak Lv1 beasts you start with.
 
 ### How difficulty is gated
 

@@ -448,6 +448,8 @@ test('ten stages climb from weak Vesper to full-power Cindervow', () => {
   const cinderDeck = buildBossDeck(last, mulberry32(8));
   const cinderFill = cinderDeck.filter((c) => !last.ultimates.includes(c.id));
   assert.ok(cinderFill.some((c) => c.level <= 7), 'Stage 10 fill is not a relic wall');
+  assert.ok(cinderFill.every((c) => c.level < 10), 'Stage 10 does not stack extra sovereigns');
+  assert.equal(new Set(cinderDeck.map((c) => c.id)).size, cinderDeck.length);
   assert.ok(last.ultimates.includes('hellforge'));
   for (const boss of BOSSES) {
     assert.equal(boss.ultimates.length, 3, boss.id);
@@ -466,6 +468,43 @@ test('ten stages climb from weak Vesper to full-power Cindervow', () => {
       }
     }
   }
+});
+
+test('Stage 10 is hardest, but a climbed album can contest it', () => {
+  const threat = (cards) => cards.reduce((n, c) => n + totalValue(c), 0);
+  const seeds = [1, 2, 3, 5, 8, 13, 21];
+  const avgThreat = (boss) =>
+    seeds.reduce((n, seed) => n + threat(buildBossDeck(boss, mulberry32(seed))), 0) / seeds.length;
+  const t1 = avgThreat(BOSSES[0]);
+  const t5 = avgThreat(BOSSES[4]);
+  const t9 = avgThreat(BOSSES[8]);
+  const t10 = avgThreat(BOSSES[9]);
+  assert.ok(t1 < t5, `stage 1 ${t1} !< stage 5 ${t5}`);
+  assert.ok(t5 < t10, `stage 5 ${t5} !< stage 10 ${t10}`);
+  assert.ok(t9 < t10, `stage 9 ${t9} !< stage 10 ${t10}`);
+
+  const mireveil = buildBossDeck(BOSSES[8], mulberry32(9));
+  assert.equal(mireveil.some((c) => c.id === 'hellforge'), false);
+
+  const climbed = [...new Set(BOSSES.slice(0, 9).flatMap((b) => b.ultimates))]
+    .map((id) => ROSTER.find((c) => c.id === id))
+    .filter(Boolean)
+    .sort((a, b) => b.level * 100 + totalValue(b) - (a.level * 100 + totalValue(a)))
+    .slice(0, 5);
+  const player = threat(climbed);
+  let bossBest = 0;
+  for (const seed of seeds) {
+    const best5 = buildBossDeck(BOSSES[9], mulberry32(seed))
+      .slice()
+      .sort((a, b) => totalValue(b) - totalValue(a))
+      .slice(0, 5);
+    bossBest += threat(best5);
+  }
+  bossBest /= seeds.length;
+  assert.ok(
+    player >= bossBest * 0.88,
+    `climbed five ${player} cannot contest Cindervow best five ${bossBest}`,
+  );
 });
 
 test('winning a stage unlocks the next and starters stay weaker than Cindervow', () => {

@@ -125,7 +125,7 @@ export const BOSSES = [
     name: 'Lord Cindervow',
     short: 'Cindervow',
     title: 'Ember Liege',
-    blurb: 'Stage 10. Full fire court — Phoenix, Behemoth, Hellforge. Hardest fight, still beatable.',
+    blurb: 'Stage 10. Hardest fight, still beatable. Three Lv8–10 ultimates; fill is warlords, not extra sovereigns.',
     band: 'Sovereign · Lv8–10',
     ultimates: ['cinder-behemoth', 'ashen-phoenix', 'hellforge'],
     maxLevel: 10,
@@ -225,19 +225,28 @@ export function bossFillMinLevel(boss) {
   const stage = boss?.stage || 1;
   if (stage <= 3) return 1;
   if (stage <= 6) return Math.max(1, cap - 2);
-  if (stage <= 9) return Math.max(1, cap - 3);
+  if (stage <= 9) return 5;
   return 6;
+}
+
+/** Late stages keep their own Lv10 signatures — they do not fill with extra sovereigns. */
+export function extraSovereignFillIds(boss) {
+  const reserved = new Set(boss?.ultimates || []);
+  return ROSTER.filter((card) => card.level >= 10 && !reserved.has(card.id)).map((card) => card.id);
 }
 
 export function buildBossDeck(boss, rng) {
   const ultimates = (boss?.ultimates || []).map((id) => cardById(id)).filter(Boolean);
   const cap = boss?.maxLevel ?? 10;
+  const stage = boss?.stage || 1;
   return dealCappedDeck(ROSTER, rng, {
     size: DECK_SIZE,
     maxLevel: cap,
     minLevel: bossFillMinLevel(boss),
     required: ultimates,
     allowCopies: true,
+    copyMaxLevel: stage <= 3 ? cap : Math.min(cap, 6),
+    forbidIds: stage >= 8 ? extraSovereignFillIds(boss) : [],
   });
 }
 

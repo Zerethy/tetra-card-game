@@ -44,6 +44,8 @@ export function dealCappedDeck(roster, rng, options = {}) {
   const minLevel = options.minLevel ?? 1;
   const required = (options.required || []).filter(Boolean);
   const allowCopies = options.allowCopies !== false;
+  const copyMaxLevel = options.copyMaxLevel ?? maxLevel;
+  const forbid = new Set(options.forbidIds || []);
   const deck = [];
   const used = new Set();
   for (const card of required) {
@@ -53,6 +55,7 @@ export function dealCappedDeck(roster, rng, options = {}) {
   }
   const eligible = roster.filter((card) => {
     const lv = card.level || 1;
+    if (forbid.has(card.id)) return false;
     return lv >= minLevel && lv <= maxLevel;
   });
   for (const card of shuffle(eligible.filter((c) => !used.has(c.id)), rng)) {
@@ -61,7 +64,11 @@ export function dealCappedDeck(roster, rng, options = {}) {
     used.add(card.id);
   }
   if (allowCopies && deck.length < size && eligible.length) {
-    const extras = shuffle(eligible.slice(), rng);
+    let extras = shuffle(
+      eligible.filter((card) => (card.level || 1) <= copyMaxLevel),
+      rng,
+    );
+    if (!extras.length) extras = shuffle(eligible.slice(), rng);
     let i = 0;
     while (deck.length < size && extras.length) {
       deck.push(extras[i % extras.length]);
