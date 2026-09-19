@@ -1458,6 +1458,10 @@ button {
   height: 112px;
 }
 
+#album-overlay {
+  z-index: 24;
+}
+
 .album-card {
   width: min(920px, 100%);
 }
@@ -1539,6 +1543,11 @@ button {
 .loadout-slot .tm-card {
   width: 100%;
   height: 100%;
+}
+
+.loadout-slot.empty {
+  cursor: default;
+  opacity: 0.55;
 }
 
 .album-tile.identity-tile .tm-card,
@@ -1770,9 +1779,19 @@ button {
 
 .title-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
   align-items: center;
+}
+
+.title-card .title-actions,
+.album-card .title-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  padding: 10px 0 2px;
+  background: linear-gradient(180deg, transparent, #c4a060 28%);
 }
 
 .seal-btn {
@@ -1789,8 +1808,11 @@ button {
   box-shadow: 0 4px 0 #5a3810;
 }
 
-.seal-btn:hover {
-  filter: brightness(1.06);
+.seal-btn.album-seal {
+  background: radial-gradient(circle at 30% 20%, #e8d4ff, #7a38b0);
+  color: #fff8ff;
+  border-color: #3a1848;
+  box-shadow: 0 4px 0 #3a1848;
 }
 
 .seal-btn:disabled {

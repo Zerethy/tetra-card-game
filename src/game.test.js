@@ -13,7 +13,7 @@ import {
 } from './game.js';
 import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId } from './cards.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderCardBack, renderElementWheel } from './ui.js';
+import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid } from './ui.js';
 import {
   BOSSES,
   tradeTakeCount,
@@ -572,6 +572,10 @@ test('album progress starts at three unique beasts and a five-card loadout', () 
   const campaign = emptyCampaign();
   assert.deepEqual(albumProgress(campaign), { owned: 3, total: 22 });
   assert.equal(sanitizeLoadout(campaign).length, LOADOUT_SIZE);
+  const html = renderAlbumGrid(campaign, campaign.loadout);
+  assert.match(html, /album-tile owned/);
+  assert.match(html, /album-unknown/);
+  assert.match(html, /\?\?\?/);
 });
 
 test('identity cards are modest, pinned, and cannot be traded away', () => {

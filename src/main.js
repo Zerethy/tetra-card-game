@@ -195,7 +195,7 @@ function renderSetup() {
     els.collectionLine.innerHTML =
       n === 0
         ? `Album empty. <button type="button" class="text-btn" id="rebuild-album">Rebuild starter album</button>`
-        : `Album · <strong>${albumProgress(campaign).owned}</strong>/${albumProgress(campaign).total} unique · ${n} cop${n === 1 ? 'y' : 'ies'} · ${ults} ultimate${ults === 1 ? '' : 's'} · Stage <strong>${unlocked}</strong>/${STAGE_COUNT}${youBit}`;
+        : `<button type="button" class="text-btn" id="open-album-line">Album · <strong>${albumProgress(campaign).owned}</strong>/${albumProgress(campaign).total}</button> unique · ${n} cop${n === 1 ? 'y' : 'ies'} · ${ults} ultimate${ults === 1 ? '' : 's'} · Stage <strong>${unlocked}</strong>/${STAGE_COUNT}${youBit}`;
   }
   if (els.start) {
     if (n === 0) els.start.textContent = 'Rebuild Album';
@@ -298,11 +298,15 @@ function renderAlbum() {
   if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout);
   if (els.loadoutRow) {
     const hydrated = campaign.player.map(hydrateOwned).filter(Boolean);
-    els.loadoutRow.innerHTML = campaign.loadout.map((uid) => {
+    const filled = campaign.loadout.map((uid) => {
       const card = hydrated.find((c) => c.uid === uid);
       if (!card) return '';
       return `<button type="button" class="loadout-slot" data-uid="${card.uid}">${renderCard(card, { surface: `ld-${uid}`, owner: 'player', showName: true })}</button>`;
-    }).join('');
+    });
+    while (filled.length < LOADOUT_SIZE) {
+      filled.push('<div class="loadout-slot empty" aria-hidden="true"></div>');
+    }
+    els.loadoutRow.innerHTML = filled.join('');
   }
   if (els.albumConfirm) {
     els.albumConfirm.disabled = campaign.loadout.length !== LOADOUT_SIZE;
@@ -868,9 +872,12 @@ els.stakesRow?.addEventListener('click', (event) => {
 });
 
 els.collectionLine?.addEventListener('click', (event) => {
-  if (event.target.id !== 'rebuild-album') return;
-  campaign = resetCampaign(campaign);
-  persist();
+  if (event.target.id === 'rebuild-album') {
+    campaign = resetCampaign(campaign);
+    persist();
+    return;
+  }
+  if (event.target.closest('#open-album-line')) openAlbum('browse');
 });
 
 els.claimGrid?.addEventListener('click', (event) => {
