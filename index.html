@@ -62,14 +62,14 @@
         <h2>Aetherbound</h2>
         <div class="title-deck" id="title-deck" aria-hidden="true"></div>
         <p class="lede">
-          Draw five dark-fantasy champions, place them on the ninefold grid, and capture
-          your rival by placing adjacent and beating the touching side ranks.
+          Start at Stage 1 with low beasts. Win trades to climb. Later bosses keep their
+          full ultimates — Lord Cindervow at Stage 10 is the hardest fight, not a wall.
         </p>
         <div class="setup-panel">
           <p class="setup-label">Trade rule</p>
           <div class="chip-row" id="trade-row" role="group" aria-label="Trade rule"></div>
-          <p class="setup-label">Rival</p>
-          <div class="chip-row" id="rival-row" role="group" aria-label="Rival"></div>
+          <p class="setup-label">Stage</p>
+          <div class="chip-row" id="rival-row" role="group" aria-label="Stage"></div>
           <div class="boss-ultimates" id="boss-ultimates"></div>
           <p class="collection-line" id="collection-line"></p>
           <p class="setup-label">After a duel</p>
@@ -94,11 +94,12 @@
           <li><strong>Higher number captures</strong> and flips the enemy card to your color. Ties do nothing. Losing a compare does not cost your card.</li>
           <li>Captured cards can <strong>combo</strong> — they immediately compare their other sides against remaining neighbors.</li>
           <li>The board fills at 9 cards. Highest total of <strong>board + remaining hand</strong> wins.</li>
+          <li>A fresh album is <strong>level-1 beasts</strong>. Winning a stage unlocks the next rival (1 → 10).</li>
         </ol>
         <p class="help-types">
-          Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). Each starter deck mixes mostly 1–5s with a warlord, a relic, and one sovereign.
+          Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). You start at Stage 1; Boss 10 keeps a full late kit and is hard, not unwinnable.
           Each card prints four ranks on its sides (1–A). Clashes are <strong>higher number wins</strong> (6 beats 3). Elements follow the three wheels on the plaque (tie-break only; never overturn a number gap).
-          After a win, <strong>Move On</strong> claims the trade. <strong>Death Match</strong> is not required after a clean win — only at one card, or if you opt in for bigger stakes.
+          After a win, <strong>Move On</strong> claims the trade — that is how you earn stronger ultimates. <strong>Death Match</strong> is not required after a clean win — only at one card, or if you opt in for bigger stakes.
         </p>
         <button type="button" id="close-help" class="seal-btn">Close</button>
       </div>

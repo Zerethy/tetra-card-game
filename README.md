@@ -45,7 +45,7 @@ Each card prints **four side ranks** — Top, Right, Bottom, Left — in hex **1
 | 9 | Relics | A | 32–36 | Runebound Golem |
 | 10 | Sovereigns | A | 34–38 | Hellforge Tyrant, Pearl Seraph |
 
-Each starter deck of **8** is dealt from that mix: **5** beasts (levels 1–5), **1** warlord (6–7), **1** relic (8–9), and **1** sovereign (10). Player and AI draw the same quota from a shared pool so matches stay fair. Names and art are original — no copyrighted FF cards or characters.
+A **fresh album** is eight **level-1 beasts** (copies of Ember Drake, Nightbloom Witch, and Plaguebloom). You do not start with relics or sovereigns. Stronger cards enter the album when you **win trades**. Names and art are original — no copyrighted FF cards or characters.
 
 All names and illustrations are original dark-fantasy champions — paladins, liches, demon lords, constructs, and boss-like beasts — drawn as SVG, not ripped from other games.
 
@@ -82,11 +82,30 @@ Wheels (clockwise beats), also shown on the parchment plaque in the top-left of 
 
 ## AI
 
-Rivals play from their drawn hand. Lady Vesper and the named bosses score each legal (card, empty square) pair by expected side captures, center control, and a little noise — then place the best move.
+Rivals play from their drawn hand. Each stage scores legal (card, empty square) pairs by expected side captures, center control, and a little noise — then places the best move.
+
+## Climb (Stage 1 → 10)
+
+A new save starts at **Stage 1** only. Winning a stage unlocks the next. Boss card peaks are **not nerfed** — early fights use weaker signatures, and late bosses keep full ultimates.
+
+| Stage | Rival | Signature band | Deck cap |
+|-------|--------|----------------|----------|
+| 1 | Lady Vesper | Lv1 beasts (weak-tier ultimates) | ≤2 |
+| 2 | Sir Galehart | Lv2 beasts | ≤3 |
+| 3 | Cantor Brine | Lv3 beasts | ≤4 |
+| 4 | Hexa of the Rift | Lv4–5 | ≤5 |
+| 5 | Mirror-Abbess | Elite beasts | ≤5 |
+| 6 | Kael the Oathbound | First warlords | ≤6 |
+| 7 | The Veiled Regent | Strong warlords | ≤7 |
+| 8 | Warden Ferric | Iron-ward relics | ≤9 |
+| 9 | Duchess Mireveil | Abyss + Pearl Seraph | ≤10 |
+| 10 | Lord Cindervow | Full fire court (Lv7–10) | ≤10 |
+
+Stage 10 is the **hardest** fight, not an unwinnable wall. A climbed album of earned ultimates can beat it with good play. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb.
 
 ## Trades, bosses, and Death Match
 
-Before **New Match**, pick a **trade rule** and a rival. Your session album (about a dozen starters) is stored in `localStorage`.
+Before **New Match**, pick a **trade rule** and an unlocked stage. Your session album is stored in `localStorage`.
 
 | Rule | Winner takes |
 |------|----------------|
@@ -95,13 +114,13 @@ Before **New Match**, pick a **trade rule** and a rival. Your session album (abo
 | **All** | the entire wagered set |
 | **Diff** | as many cards as the score difference |
 
-A draw moves no cards. After a win, **Move On** applies that trade and returns to the title. Named bosses each keep **three unique ultimates** (levels 6–10). Those cards are always in that rival’s wager, shown before the match and on the claim screen, and they sit first in One / Three / All picks. The album tracks which ultimates you have claimed.
+A draw moves no cards. After a win, **Move On** applies that trade and returns to the title. Each rival’s three signatures sit first in One / Three / All picks. The album tracks which ultimates you have claimed.
 
-- **Lord Cindervow** — Cinder Behemoth, Ashen Phoenix, Hellforge Tyrant
-- **Duchess Mireveil** — Voidglass Lich, Abyssal Countess, Pearl Seraph
+Late signatures (unchanged peaks):
+
 - **Warden Ferric** — Iron Vow, Gilded Colossus, Runebound Golem
-
-Lady Vesper is a wandering rival with a mixed deck and no reserved ultimates.
+- **Duchess Mireveil** — Voidglass Lich, Abyssal Countess, Pearl Seraph
+- **Lord Cindervow** — Cinder Behemoth, Ashen Phoenix, Hellforge Tyrant
 
 **Death Match** is never required after a clean 3×3 win. **Move On** is the primary button and claims the table trade (One / Three / All / Diff). Death Match appears on that screen only if you opted in (“Offer Death Match after duel”) or your album is already down to one card. You can also start a Death Match from the title. Each side pulls one card at random and clashes by **total of the four side ranks** (higher sum wins; element ±1 only on a tied sum). The loser pays **two more** than the selected trade rule (One → 3, Three → 5, All → the wager plus two vault cards), capped by how many cards remain.
 

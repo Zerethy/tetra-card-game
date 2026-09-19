@@ -1,7 +1,15 @@
-import { ROSTER, cardById, tierOf, levelOf, totalValue } from './cards.js';
-import { DECK_SIZE, DECK_QUOTA, shuffle, mulberry32, dealStarterDecks, resolveBattle } from './game.js';
+import { ROSTER, cardById, levelOf, totalValue } from './cards.js';
+import {
+  DECK_SIZE,
+  PLAYER_STARTER_MAX_LEVEL,
+  shuffle,
+  mulberry32,
+  dealCappedDeck,
+  resolveBattle,
+} from './game.js';
 
-export const STORAGE_KEY = 'aetherbound-campaign-v1';
+export const STORAGE_KEY = 'aetherbound-campaign-v2';
+export const STAGE_COUNT = 10;
 
 export const TRADE_RULES = [
   { id: 'one', name: 'One', blurb: 'Winner chooses 1 card from the loser.' },
@@ -13,31 +21,103 @@ export const TRADE_RULES = [
 export const BOSSES = [
   {
     id: 'vesper',
+    stage: 1,
     name: 'Lady Vesper',
+    short: 'Vesper',
     title: 'Pink Rival',
-    blurb: 'A wandering duelist with a mixed album. No reserved ultimates.',
-    ultimates: [],
+    blurb: 'Stage 1. Weak-tier signatures. Beatable with starter beasts.',
+    ultimates: ['ember-drake', 'nightbloom', 'plaguebloom'],
+    maxLevel: 2,
   },
   {
-    id: 'cindervow',
-    name: 'Lord Cindervow',
-    title: 'Ember Liege',
-    blurb: 'The furnace court. Three fire ultimates bound to his name.',
-    ultimates: ['cinder-behemoth', 'ashen-phoenix', 'hellforge'],
+    id: 'galehart',
+    stage: 2,
+    name: 'Sir Galehart',
+    short: 'Galehart',
+    title: 'Sky Lance',
+    blurb: 'Stage 2. Gale and frost beasts. The first real climb reward.',
+    ultimates: ['skyraid', 'frost-wraith', 'bone-choir'],
+    maxLevel: 3,
   },
   {
-    id: 'mireveil',
-    name: 'Duchess Mireveil',
-    title: 'Tide of Veils',
-    blurb: 'Velvet abyss, last phylactery, and a stolen dawn.',
-    ultimates: ['voidglass', 'abyssal-countess', 'pearl-seraph'],
+    id: 'brine',
+    stage: 3,
+    name: 'Cantor Brine',
+    short: 'Brine',
+    title: 'Red Tide',
+    blurb: 'Stage 3. Tide, thunder, and thorn. Mid-beast signatures.',
+    ultimates: ['tidebreaker', 'stormglass', 'thornwake'],
+    maxLevel: 4,
+  },
+  {
+    id: 'hexa',
+    stage: 4,
+    name: 'Hexa of the Rift',
+    short: 'Hexa',
+    title: 'Between-Worlds',
+    blurb: 'Stage 4. Crimson step and rift-walk. Mid difficulty.',
+    ultimates: ['bloodmoon', 'rift-stalker', 'gravewing'],
+    maxLevel: 5,
+  },
+  {
+    id: 'abbess',
+    stage: 5,
+    name: 'Mirror-Abbess',
+    short: 'Abbess',
+    title: 'Glass Psalm',
+    blurb: 'Stage 5. Ice and bone elites. One step below warlords.',
+    ultimates: ['shard-knight', 'gravewing', 'rift-stalker'],
+    maxLevel: 5,
+  },
+  {
+    id: 'kael',
+    stage: 6,
+    name: 'Kael the Oathbound',
+    short: 'Kael',
+    title: 'First Vow',
+    blurb: 'Stage 6. The first warlords. Soft peaks, not relics.',
+    ultimates: ['iron-vow', 'voidglass', 'shard-knight'],
+    maxLevel: 6,
+  },
+  {
+    id: 'regent',
+    stage: 7,
+    name: 'The Veiled Regent',
+    short: 'Regent',
+    title: 'Velvet Host',
+    blurb: 'Stage 7. Furnace hide and velvet cataclysm. One strong warlord each.',
+    ultimates: ['cinder-behemoth', 'abyssal-countess', 'voidglass'],
+    maxLevel: 7,
   },
   {
     id: 'ferric',
+    stage: 8,
     name: 'Warden Ferric',
+    short: 'Ferric',
     title: 'Law of Iron',
-    blurb: 'Oath, gilt, and stone. Three ultimates of the iron ward.',
+    blurb: 'Stage 8. Oath, gilt, and stone. Full iron-ward ultimates.',
     ultimates: ['iron-vow', 'gilded-colossus', 'runebound'],
+    maxLevel: 9,
+  },
+  {
+    id: 'mireveil',
+    stage: 9,
+    name: 'Duchess Mireveil',
+    short: 'Mireveil',
+    title: 'Tide of Veils',
+    blurb: 'Stage 9. Velvet abyss, last phylactery, and a stolen dawn.',
+    ultimates: ['voidglass', 'abyssal-countess', 'pearl-seraph'],
+    maxLevel: 10,
+  },
+  {
+    id: 'cindervow',
+    stage: 10,
+    name: 'Lord Cindervow',
+    short: 'Cindervow',
+    title: 'Ember Liege',
+    blurb: 'Stage 10. Hardest fight — full fire court. Beatable with a climbed album.',
+    ultimates: ['cinder-behemoth', 'ashen-phoenix', 'hellforge'],
+    maxLevel: 10,
   },
 ];
 
@@ -93,7 +173,7 @@ export function makeDeathSession(campaign, rng) {
   const playerWager = (campaign.player || []).map(hydrateOwned).filter(Boolean);
   const aiTemplates = buildBossDeck(boss, rng);
   const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || newUid() }));
-  const aiVault = buildAiVault(aiWager, 2, rng).map(hydrateOwned).filter(Boolean);
+  const aiVault = buildAiVault(aiWager, 2, rng, boss).map(hydrateOwned).filter(Boolean);
   return {
     boss,
     trade: campaign.trade,
@@ -124,44 +204,35 @@ export function preferUltimates(cards, ultimateIds) {
 export function pickWager(ownedHydrated, size = DECK_SIZE, rng) {
   const pool = ownedHydrated.filter(Boolean);
   if (pool.length <= size) return shuffle(pool, rng);
-  const buckets = { beast: [], warlord: [], relic: [], sovereign: [] };
-  for (const card of shuffle(pool, rng)) {
-    buckets[tierOf(card)].push(card);
-  }
-  const deck = [];
-  for (const [tier, count] of Object.entries(DECK_QUOTA)) {
-    for (let i = 0; i < count; i += 1) {
-      if (buckets[tier].length) deck.push(buckets[tier].pop());
-    }
-  }
-  const fallback = ['sovereign', 'relic', 'warlord', 'beast'];
-  while (deck.length < size) {
-    const tier = fallback.find((key) => buckets[key].length);
-    if (!tier) break;
-    deck.push(buckets[tier].pop());
-  }
-  return shuffle(deck, rng);
+  const ranked = pool.slice().sort((a, b) => rankCard(b) - rankCard(a) || String(a.id).localeCompare(String(b.id)));
+  const cut = ranked.slice(0, Math.min(ranked.length, size + 2));
+  return shuffle(cut, rng).slice(0, size);
+}
+
+export function bossFillMinLevel(boss) {
+  const cap = boss?.maxLevel ?? 10;
+  const stage = boss?.stage || 1;
+  if (stage <= 3) return 1;
+  return Math.max(1, cap - 2);
 }
 
 export function buildBossDeck(boss, rng) {
   const ultimates = (boss?.ultimates || []).map((id) => cardById(id)).filter(Boolean);
-  const used = new Set(ultimates.map((c) => c.id));
-  const rest = shuffle(
-    ROSTER.filter((c) => !used.has(c.id)),
-    rng,
-  );
-  const deck = ultimates.slice();
-  for (const card of rest) {
-    if (deck.length >= DECK_SIZE) break;
-    deck.push(card);
-  }
-  return shuffle(deck, rng);
+  const cap = boss?.maxLevel ?? 10;
+  return dealCappedDeck(ROSTER, rng, {
+    size: DECK_SIZE,
+    maxLevel: cap,
+    minLevel: bossFillMinLevel(boss),
+    required: ultimates,
+    allowCopies: true,
+  });
 }
 
-export function buildAiVault(wagerTemplates, count, rng) {
+export function buildAiVault(wagerTemplates, count, rng, boss) {
   const used = new Set(wagerTemplates.map((c) => c.id));
+  const cap = boss?.maxLevel ?? 10;
   const rest = shuffle(
-    ROSTER.filter((c) => !used.has(c.id)),
+    ROSTER.filter((c) => !used.has(c.id) && c.level <= cap),
     rng,
   );
   return rest.slice(0, Math.max(0, count)).map(ownedFromTemplate);
@@ -169,10 +240,14 @@ export function buildAiVault(wagerTemplates, count, rng) {
 
 export function starterCollection(seed = 0xa37e4) {
   const rng = mulberry32(seed);
-  const dealt = dealStarterDecks(ROSTER, rng);
-  const used = new Set([...dealt.player, ...dealt.ai].map((c) => c.id));
-  const extra = ROSTER.filter((c) => !used.has(c.id) && tierOf(c) === 'beast').slice(0, 4);
-  return [...dealt.player, ...extra].map(ownedFromTemplate);
+  const lv1 = ROSTER.filter((c) => c.level === 1 && c.level <= PLAYER_STARTER_MAX_LEVEL);
+  const picks = [];
+  let i = 0;
+  while (picks.length < DECK_SIZE && lv1.length) {
+    picks.push(lv1[i % lv1.length]);
+    i += 1;
+  }
+  return picks.map(ownedFromTemplate);
 }
 
 export function emptyCampaign() {
@@ -182,7 +257,12 @@ export function emptyCampaign() {
     rival: 'vesper',
     claimedUltimates: [],
     offerDeathMatch: false,
+    unlockedStage: 1,
   };
+}
+
+export function isRivalUnlocked(boss, unlockedStage) {
+  return (boss?.stage || 1) <= Math.max(1, unlockedStage | 0);
 }
 
 export function loadCampaign() {
@@ -195,12 +275,21 @@ export function loadCampaign() {
       .filter((c) => c && c.id && cardById(c.id))
       .map((c) => ({ uid: c.uid || newUid(), id: c.id }));
     if (!player.length) return emptyCampaign();
+    const unlockedStage = Math.min(
+      STAGE_COUNT,
+      Math.max(1, Number(parsed.unlockedStage) || 1),
+    );
+    let rival = BOSSES.some((b) => b.id === parsed.rival) ? parsed.rival : 'vesper';
+    if (!isRivalUnlocked(bossById(rival), unlockedStage)) {
+      rival = [...BOSSES].filter((b) => isRivalUnlocked(b, unlockedStage)).pop()?.id || 'vesper';
+    }
     return {
       player,
       trade: TRADE_RULES.some((r) => r.id === parsed.trade) ? parsed.trade : 'one',
-      rival: BOSSES.some((b) => b.id === parsed.rival) ? parsed.rival : 'vesper',
+      rival,
       claimedUltimates: Array.isArray(parsed.claimedUltimates) ? parsed.claimedUltimates : [],
       offerDeathMatch: Boolean(parsed.offerDeathMatch),
+      unlockedStage,
     };
   } catch {
     return emptyCampaign();
@@ -218,8 +307,9 @@ export function saveCampaign(campaign) {
 export function resetCampaign(campaign) {
   const next = emptyCampaign();
   next.trade = campaign?.trade || 'one';
-  next.rival = campaign?.rival || 'vesper';
+  next.rival = 'vesper';
   next.offerDeathMatch = Boolean(campaign?.offerDeathMatch);
+  next.unlockedStage = 1;
   return next;
 }
 
@@ -245,10 +335,13 @@ export function applyLoss(campaign, uids) {
 
 export function applyWin(campaign, claimed, boss) {
   const additions = claimed.map((c) => ownedFromTemplate(c));
+  const cleared = boss?.stage || 1;
+  const unlockedStage = Math.min(STAGE_COUNT, Math.max(campaign.unlockedStage || 1, cleared + 1));
   return {
     ...campaign,
     player: [...campaign.player, ...additions],
     claimedUltimates: markClaimedUltimates(campaign, claimed, boss),
+    unlockedStage,
   };
 }
 

@@ -121,9 +121,11 @@ export function clashFlashHtml(battle) {
   return `<div class="clash-flash">${bits.join('')}</div>`;
 }
 
-export function renderChip(id, label, selected, title = '') {
+export function renderChip(id, label, selected, title = '', options = {}) {
   const tip = title ? ` title="${escapeText(title)}"` : '';
-  return `<button type="button" class="chip${selected ? ' selected' : ''}" data-id="${escapeText(id)}"${tip}>${escapeText(label)}</button>`;
+  const locked = options.locked ? ' locked' : '';
+  const disabled = options.locked ? ' disabled' : '';
+  return `<button type="button" class="chip${selected ? ' selected' : ''}${locked}" data-id="${escapeText(id)}"${disabled}${tip}>${escapeText(label)}</button>`;
 }
 
 export function renderUltimateStrip(boss, claimedIds = []) {

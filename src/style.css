@@ -1424,6 +1424,13 @@ button {
   box-shadow: 0 0 10px rgba(180, 40, 255, 0.45);
 }
 
+.chip.locked,
+.chip:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .ultimate-names {
   margin: 6px 0 0;
   font-size: 13px;

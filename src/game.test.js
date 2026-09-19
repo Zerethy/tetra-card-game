@@ -9,9 +9,9 @@ import {
   mulberry32,
   emptyCells,
   elementModifier,
-  DECK_QUOTA,
+  PLAYER_STARTER_MAX_LEVEL,
 } from './game.js';
-import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, tierOf } from './cards.js';
+import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf } from './cards.js';
 import { chooseAiMove } from './ai.js';
 import { renderCard, renderCardBack, renderElementWheel } from './ui.js';
 import {
@@ -27,6 +27,9 @@ import {
   applyWin,
   applyLoss,
   emptyCampaign,
+  starterCollection,
+  isRivalUnlocked,
+  STAGE_COUNT,
 } from './campaign.js';
 
 function card(partial) {
@@ -349,22 +352,25 @@ test('roster cards only store four side ranks', () => {
   }
 });
 
-test('player and AI starter decks share the same level mix and no cards', () => {
+test('default createMatch deals low beasts, not relics or sovereigns', () => {
   for (const seed of [1, 7, 21, 99, 404]) {
     const match = createMatch({ seed });
     const player = [...match.player.hand, ...match.player.deck];
     const ai = [...match.ai.hand, ...match.ai.deck];
     assert.equal(player.length, 8);
     assert.equal(ai.length, 8);
-    const tally = (cards) => {
-      const counts = { beast: 0, warlord: 0, relic: 0, sovereign: 0 };
-      for (const card of cards) counts[tierOf(card)] += 1;
-      return counts;
-    };
-    assert.deepEqual(tally(player), DECK_QUOTA);
-    assert.deepEqual(tally(ai), DECK_QUOTA);
-    const ids = [...player, ...ai].map((c) => c.id);
-    assert.equal(new Set(ids).size, 16);
+    for (const card of [...player, ...ai]) {
+      assert.ok(card.level <= PLAYER_STARTER_MAX_LEVEL, `${card.id} lv${card.level}`);
+    }
+  }
+});
+
+test('fresh album is level-1 beasts only', () => {
+  const album = starterCollection(99);
+  assert.equal(album.length, 8);
+  for (const owned of album) {
+    const template = ROSTER.find((c) => c.id === owned.id);
+    assert.equal(template.level, 1, owned.id);
   }
 });
 
@@ -419,28 +425,48 @@ test('Death Match is forced at one card and still has a rival payout pool', () =
   );
 });
 
-test('named bosses each hold three unique high-tier ultimates', () => {
-  const bosses = BOSSES.filter((b) => b.ultimates.length);
-  assert.ok(bosses.length >= 3);
-  const ids = [];
-  for (const boss of bosses) {
+test('ten stages climb from weak Vesper to full-power Cindervow', () => {
+  assert.equal(BOSSES.length, STAGE_COUNT);
+  assert.deepEqual(BOSSES.map((b) => b.stage), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  const first = BOSSES[0];
+  const last = BOSSES[BOSSES.length - 1];
+  assert.equal(first.id, 'vesper');
+  assert.equal(last.id, 'cindervow');
+  for (const id of first.ultimates) {
+    assert.ok(levelOf(ROSTER.find((c) => c.id === id)) <= 2, id);
+  }
+  for (const id of last.ultimates) {
+    assert.ok(levelOf(ROSTER.find((c) => c.id === id)) >= 7, id);
+  }
+  assert.ok(last.ultimates.includes('hellforge'));
+  for (const boss of BOSSES) {
     assert.equal(boss.ultimates.length, 3, boss.id);
     assert.equal(new Set(boss.ultimates).size, 3, boss.id);
-    for (const id of boss.ultimates) {
-      const template = ROSTER.find((c) => c.id === id);
-      assert.ok(template, id);
-      assert.ok(template.level >= 6, id);
-      ids.push(id);
-    }
     const deck = buildBossDeck(boss, mulberry32(11));
     assert.equal(deck.length, 8);
     for (const id of boss.ultimates) {
       assert.ok(deck.some((c) => c.id === id), `${boss.id} missing ${id}`);
     }
+    assert.ok(deck.every((c) => c.level <= boss.maxLevel), `${boss.id} broke cap`);
     const preferred = preferUltimates(deck, boss.ultimates).slice(0, 3);
     assert.equal(preferred.every((c) => boss.ultimates.includes(c.id)), true);
   }
-  assert.equal(new Set(ids).size, ids.length);
+});
+
+test('winning a stage unlocks the next and starters stay weaker than Cindervow', () => {
+  const campaign = emptyCampaign();
+  assert.equal(campaign.unlockedStage, 1);
+  assert.equal(isRivalUnlocked(BOSSES[0], 1), true);
+  assert.equal(isRivalUnlocked(BOSSES[1], 1), false);
+  assert.equal(isRivalUnlocked(BOSSES[9], 1), false);
+  const next = applyWin(campaign, [{ id: 'ember-drake', name: 'Ember Drake' }], BOSSES[0]);
+  assert.equal(next.unlockedStage, 2);
+  assert.equal(isRivalUnlocked(BOSSES[1], next.unlockedStage), true);
+  const starterMax = Math.max(...starterCollection().map((c) => ROSTER.find((t) => t.id === c.id).level));
+  const bossTen = buildBossDeck(BOSSES[9], mulberry32(4));
+  const bossTenMax = Math.max(...bossTen.map((c) => c.level));
+  assert.ok(starterMax < bossTenMax);
+  assert.ok(bossTenMax >= 10);
 });
 
 test('createMatch can wager custom decks and skip empty hands', () => {

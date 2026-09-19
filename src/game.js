@@ -1,12 +1,13 @@
-import { SIDES, ELEMENT_BEATS, ROSTER, tierOf, totalValue } from './cards.js';
+import { SIDES, ELEMENT_BEATS, ROSTER, totalValue } from './cards.js';
 
 export const DECK_SIZE = 8;
 const HAND_SIZE = 5;
 const BOARD_SIZE = 9;
 const COLS = 3;
 
-/** Each starter deck of 8: mostly beasts, one warlord, one relic, one sovereign. */
-export const DECK_QUOTA = { beast: 5, warlord: 1, relic: 1, sovereign: 1 };
+/** Fresh albums stay in the beast band. Relics and sovereigns are climb rewards. */
+export const PLAYER_STARTER_MAX_LEVEL = 2;
+export const DECK_QUOTA = { beast: 8, warlord: 0, relic: 0, sovereign: 0 };
 
 export function mulberry32(seed) {
   let t = seed >>> 0;
@@ -36,35 +37,44 @@ function instanceCard(template, owner, instanceId) {
   };
 }
 
-function bucketRoster(roster, rng) {
-  const buckets = { beast: [], warlord: [], relic: [], sovereign: [] };
-  for (const card of shuffle(roster, rng)) {
-    buckets[tierOf(card)].push(card);
-  }
-  return buckets;
-}
-
-function takeFromQuota(buckets, rng) {
+/** Build a deck from a level band. Copies fill if the band is smaller than `size`. */
+export function dealCappedDeck(roster, rng, options = {}) {
+  const size = options.size ?? DECK_SIZE;
+  const maxLevel = options.maxLevel ?? 10;
+  const minLevel = options.minLevel ?? 1;
+  const required = (options.required || []).filter(Boolean);
+  const allowCopies = options.allowCopies !== false;
   const deck = [];
-  for (const [tier, count] of Object.entries(DECK_QUOTA)) {
-    for (let i = 0; i < count; i++) {
-      if (buckets[tier].length) deck.push(buckets[tier].pop());
-    }
+  const used = new Set();
+  for (const card of required) {
+    if (deck.length >= size) break;
+    deck.push(card);
+    used.add(card.id);
   }
-  const fallback = ['sovereign', 'relic', 'warlord', 'beast'];
-  while (deck.length < DECK_SIZE) {
-    const tier = fallback.find((key) => buckets[key].length);
-    if (!tier) break;
-    deck.push(buckets[tier].pop());
+  const eligible = roster.filter((card) => {
+    const lv = card.level || 1;
+    return lv >= minLevel && lv <= maxLevel;
+  });
+  for (const card of shuffle(eligible.filter((c) => !used.has(c.id)), rng)) {
+    if (deck.length >= size) break;
+    deck.push(card);
+    used.add(card.id);
+  }
+  if (allowCopies && deck.length < size && eligible.length) {
+    const extras = shuffle(eligible.slice(), rng);
+    let i = 0;
+    while (deck.length < size && extras.length) {
+      deck.push(extras[i % extras.length]);
+      i += 1;
+    }
   }
   return shuffle(deck, rng);
 }
 
 export function dealStarterDecks(roster, rng) {
-  const buckets = bucketRoster(roster, rng);
   return {
-    player: takeFromQuota(buckets, rng),
-    ai: takeFromQuota(buckets, rng),
+    player: dealCappedDeck(roster, rng, { maxLevel: PLAYER_STARTER_MAX_LEVEL }),
+    ai: dealCappedDeck(roster, rng, { maxLevel: PLAYER_STARTER_MAX_LEVEL }),
   };
 }
 

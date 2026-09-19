@@ -31,6 +31,8 @@ import {
   applyLoss,
   isUltimateId,
   resolveShowdown,
+  isRivalUnlocked,
+  STAGE_COUNT,
 } from './campaign.js';
 
 const els = {
@@ -143,9 +145,21 @@ function renderSetup() {
       renderChip(rule.id, rule.name, campaign.trade === rule.id, rule.blurb),
     ).join('');
   }
+  const unlocked = campaign.unlockedStage || 1;
+  if (!isRivalUnlocked(bossById(campaign.rival), unlocked)) {
+    campaign.rival = [...BOSSES].filter((b) => isRivalUnlocked(b, unlocked)).pop()?.id || 'vesper';
+  }
   if (els.rivalRow) {
     els.rivalRow.innerHTML = BOSSES.map((boss) =>
-      renderChip(boss.id, boss.name, campaign.rival === boss.id),
+      renderChip(
+        boss.id,
+        `${boss.stage} · ${boss.short || boss.name}`,
+        campaign.rival === boss.id,
+        isRivalUnlocked(boss, unlocked)
+          ? boss.blurb
+          : `Win Stage ${boss.stage - 1} to unlock ${boss.name}.`,
+        { locked: !isRivalUnlocked(boss, unlocked) },
+      ),
     ).join('');
   }
   const boss = bossById(campaign.rival);
@@ -156,7 +170,7 @@ function renderSetup() {
     els.collectionLine.innerHTML =
       n === 0
         ? `Album empty. <button type="button" class="text-btn" id="rebuild-album">Rebuild starter album</button>`
-        : `Album · <strong>${n}</strong> card${n === 1 ? '' : 's'} · ${ults} ultimate${ults === 1 ? '' : 's'} claimed`;
+        : `Album · <strong>${n}</strong> card${n === 1 ? '' : 's'} · ${ults} ultimate${ults === 1 ? '' : 's'} claimed · Stage <strong>${unlocked}</strong>/${STAGE_COUNT}`;
   }
   if (els.start) {
     if (n === 0) els.start.textContent = 'Rebuild Album';
@@ -197,7 +211,7 @@ function beginDuel() {
   const playerWager = pickWager(playerHydrated, 8, rng);
   const aiTemplates = buildBossDeck(boss, rng);
   const aiWager = aiTemplates.map((t) => ({ ...t, uid: t.uid || `ai-${t.id}-${Math.random().toString(36).slice(2, 6)}` }));
-  const vault = buildAiVault(aiWager, 2, rng).map(hydrateOwned).filter(Boolean);
+  const vault = buildAiVault(aiWager, 2, rng, boss).map(hydrateOwned).filter(Boolean);
 
   session = {
     boss,
@@ -659,7 +673,7 @@ els.tradeRow?.addEventListener('click', (event) => {
 
 els.rivalRow?.addEventListener('click', (event) => {
   const btn = event.target.closest('[data-id]');
-  if (!btn) return;
+  if (!btn || btn.disabled || btn.classList.contains('locked')) return;
   campaign.rival = btn.dataset.id;
   persist();
 });
