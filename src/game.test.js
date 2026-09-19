@@ -547,6 +547,7 @@ test('identity cards are modest, pinned, and cannot be traded away', () => {
   assert.ok(bound.player.some((c) => c.id === 'you-cinderpath'));
   assert.deepEqual(albumProgress(bound), { owned: 3, total: 22 });
   const uid = bound.player.find((c) => c.id === 'you-cinderpath').uid;
+  assert.ok(bound.loadout.includes(uid));
   const afterLoss = applyLoss(bound, [uid]);
   assert.ok(afterLoss.player.some((c) => c.id === 'you-cinderpath'));
 });

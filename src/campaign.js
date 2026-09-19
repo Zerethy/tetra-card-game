@@ -298,6 +298,10 @@ export function bindIdentity(campaign, identityId) {
     player: [ownedFromTemplate(ident), ...player],
   };
   next.loadout = sanitizeLoadout(next);
+  const you = next.player.find((c) => c.id === ident.id);
+  if (you && !next.loadout.includes(you.uid)) {
+    next.loadout = [you.uid, ...next.loadout.filter((uid) => uid !== you.uid)].slice(0, LOADOUT_SIZE);
+  }
   return next;
 }
 
