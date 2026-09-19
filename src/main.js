@@ -871,6 +871,8 @@ els.claimGrid?.addEventListener('click', (event) => {
   renderClaimGrid();
 });
 
+document.addEventListener('pointerdown', hideCardZoom, true);
+
 document.addEventListener('pointerover', (event) => {
   const card = event.target.closest?.('.tm-card');
   if (!card || card.classList.contains('face-down') || card.closest('.card-zoom')) return;
@@ -910,8 +912,10 @@ els.identityConfirm?.addEventListener('click', confirmIdentity);
 els.identityGrid?.addEventListener('click', (event) => {
   const pick = event.target.closest('.identity-pick');
   if (!pick) return;
+  const already = pendingIdentity === pick.dataset.id;
   pendingIdentity = pick.dataset.id;
   renderIdentitySelect();
+  if (already && event.detail >= 2) confirmIdentity();
 });
 
 if (els.titleDeck) {

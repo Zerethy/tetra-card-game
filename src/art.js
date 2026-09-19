@@ -583,23 +583,26 @@ const ART = {
   seeker(uid) {
     return wrap(
       uid,
-      g(uid, 'sky', '0', '0', '0', '1', [[0, '#1a1428'], [55, '#3a2458'], [100, '#0c0814']]) +
-        g(uid, 'cloak', '0', '0', '0', '1', [[0, '#6a4898'], [55, '#2a1848'], [100, '#12081c']]) +
-        g(uid, 'face', '0', '0', '0', '1', [[0, '#f0d8b4'], [100, '#8a6040']]) +
-        g(uid, 'hood', '0', '0', '1', '1', [[0, '#c8b4e8'], [100, '#3a2060']]),
+      g(uid, 'sky', '0', '0', '0', '1', [[0, '#241036'], [50, '#4a2068'], [100, '#100814']]) +
+        g(uid, 'cloak', '0', '0', '0', '1', [[0, '#c4a0e8'], [40, '#6a3898'], [100, '#1c0c30']]) +
+        g(uid, 'face', '0', '0', '0', '1', [[0, '#ffe4c4'], [100, '#b07848']]) +
+        g(uid, 'hood', '0', '0', '1', '1', [[0, '#f0e4ff'], [55, '#7a50b0'], [100, '#2a1448']]),
       `${sky(uid)}
-       <ellipse cx="100" cy="248" rx="54" ry="16" fill="#0a0610" opacity=".45"/>
-       <path d="M62 262 L72 168 Q100 128 128 168 L138 262 Z" fill="url(#${uid}-cloak)"/>
-       <ellipse cx="100" cy="122" rx="26" ry="30" fill="url(#${uid}-face)"/>
-       <path d="M64 138 Q100 58 136 138 L132 196 Q100 224 68 196 Z" fill="url(#${uid}-hood)" opacity=".96"/>
-       <path d="M74 128 Q100 86 126 128" fill="none" stroke="#1a1028" stroke-width="7" opacity=".35"/>
-       <ellipse cx="90" cy="124" rx="3.2" ry="2.6" fill="#140c18"/>
-       <ellipse cx="110" cy="124" rx="3.2" ry="2.6" fill="#140c18"/>
-       <path d="M88 136 Q100 142 112 136" fill="none" stroke="#4a3020" stroke-width="1.3"/>
-       <path d="M78 176 L56 214 L86 190 Z" fill="#8a70c0"/>
-       <path d="M122 176 L144 214 L114 190 Z" fill="#8a70c0"/>
-       <circle cx="100" cy="168" r="7" fill="#e8d4ff" opacity=".75" filter="url(#${uid}-bloom)"/>
-       ${motes('#e8d4ff', [[70, 78, 1.4, 0.65], [132, 88, 1.1, 0.5], [100, 54, 1.6, 0.7], [48, 160, 1.2, 0.4]])}`,
+       <ellipse cx="100" cy="252" rx="62" ry="18" fill="#080410" opacity=".5"/>
+       <path d="M48 268 L58 176 Q100 132 142 176 L152 268 Z" fill="url(#${uid}-cloak)"/>
+       <path d="M70 188 L52 236 L86 206 Z" fill="#d8c0f4"/>
+       <path d="M130 188 L148 236 L114 206 Z" fill="#d8c0f4"/>
+       <ellipse cx="100" cy="118" rx="30" ry="34" fill="url(#${uid}-face)"/>
+       <path d="M58 128 Q100 36 142 128 L138 188 Q100 216 62 188 Z" fill="url(#${uid}-hood)"/>
+       <path d="M72 124 Q100 78 128 124" fill="none" stroke="#1a0c28" stroke-width="10"/>
+       <ellipse cx="88" cy="120" rx="4.2" ry="3.4" fill="#1a1018"/>
+       <ellipse cx="114" cy="120" rx="4.2" ry="3.4" fill="#1a1018"/>
+       <circle cx="89.4" cy="119" r="1.3" fill="#f8f0e0"/>
+       <circle cx="115.4" cy="119" r="1.3" fill="#f8f0e0"/>
+       <path d="M86 136 Q100 144 114 136" fill="none" stroke="#6a3a28" stroke-width="1.8"/>
+       <path d="M78 168 H122 L116 198 H84 Z" fill="#e8d8ff"/>
+       <circle cx="100" cy="178" r="9" fill="#fff0a8" filter="url(#${uid}-bloom)"/>
+       ${motes('#ffe9a0', [[58, 64, 2, 0.75], [148, 72, 1.6, 0.55], [100, 42, 2.2, 0.8], [36, 150, 1.5, 0.4]])}`,
     );
   },
 };

@@ -1560,6 +1560,13 @@ button {
   width: min(920px, 100%);
 }
 
+.identity-card .title-actions {
+  position: sticky;
+  bottom: 0;
+  padding-top: 10px;
+  background: linear-gradient(180deg, transparent, #c4a060 30%);
+}
+
 .identity-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -1781,6 +1788,12 @@ button {
   filter: brightness(1.06);
 }
 
+.seal-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
+}
+
 .help-card {
   text-align: left;
 }
@@ -1871,6 +1884,11 @@ button {
   .hud-wheel-title {
     font-size: 8px;
   }
+}
+
+.card-zoom,
+.card-zoom * {
+  pointer-events: none !important;
 }
 
 .card-zoom {
