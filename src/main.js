@@ -9,6 +9,7 @@ import {
   renderUltimateStrip,
   renderClaimCard,
   renderAlbumGrid,
+  renderSwitchGrid,
   renderIdentityGrid,
 } from './ui.js';
 import {
@@ -46,6 +47,7 @@ import {
   moveLoadoutIndex,
   removeLoadoutUid,
   swapLoadoutWithAlbum,
+  switchCandidates,
 } from './campaign.js';
 import { cardById, DEFAULT_IDENTITY_ID } from './cards.js';
 
@@ -102,6 +104,12 @@ const els = {
   albumProgress: document.getElementById('album-progress'),
   albumLede: document.getElementById('album-lede'),
   loadoutRow: document.getElementById('loadout-row'),
+  loadoutHint: document.getElementById('loadout-hint'),
+  switchPanel: document.getElementById('switch-panel'),
+  switchGrid: document.getElementById('switch-grid'),
+  switchHint: document.getElementById('switch-hint'),
+  browseAllBtn: document.getElementById('browse-all-btn'),
+  albumBrowse: document.getElementById('album-browse'),
   identity: document.getElementById('identity-overlay'),
   identityBtn: document.getElementById('identity-btn'),
   identityGrid: document.getElementById('identity-grid'),
@@ -123,6 +131,8 @@ let deathState = null;
 let albumIntent = 'browse';
 let pendingIdentity = null;
 let pendingSwapId = null;
+let pendingSlotIndex = null;
+let browseAllOpen = false;
 const DRAG_THRESHOLD = 4;
 let deckDrag = null;
 let skipAlbumClick = false;
@@ -300,23 +310,55 @@ function renderAlbum() {
   campaign.loadout = pruneLoadout(campaign);
   const progress = albumProgress(campaign);
   const you = identityUid(campaign);
+  const candidates = switchCandidates(campaign);
+  const switching = Number.isInteger(pendingSlotIndex);
+  const switchingUid = switching ? campaign.loadout[pendingSlotIndex] : null;
+  const switchingYou = Boolean(switchingUid && switchingUid === you);
   if (els.albumProgress) {
-    els.albumProgress.textContent = `${progress.owned} / ${progress.total} unique · duel five ${campaign.loadout.length}/${LOADOUT_SIZE}`;
+    els.albumProgress.textContent = `${progress.owned} / ${progress.total} unique`;
   }
   if (els.albumLede) {
-    els.albumLede.textContent = 'Drag your best cards into the five slots. Drop on a slot to add or replace. Click a card, then a slot, to swap. Your identity stays pinned as You.';
+    els.albumLede.textContent = 'Tap a slot in Your five, then pick from Switch with these. Identity stays pinned as You.';
+  }
+  if (els.loadoutHint) {
+    if (switchingYou) els.loadoutHint.textContent = 'Identity stays pinned. Tap another slot to switch it.';
+    else if (switching) els.loadoutHint.textContent = 'Tap a card under Switch with these, or drag one onto this slot.';
+    else if (pendingSwapId) els.loadoutHint.textContent = 'Now tap a slot in Your five.';
+    else els.loadoutHint.textContent = 'Tap a slot to switch it.';
+  }
+  if (els.switchHint) {
+    if (switchingYou) els.switchHint.textContent = 'Your identity cannot be replaced.';
+    else if (switching && !candidates.length) els.switchHint.textContent = 'No spare cards. Win trades to grow the album.';
+    else if (switching) els.switchHint.textContent = 'Owned cards not already in the five, strongest first.';
+    else if (pendingSwapId) els.switchHint.textContent = 'Tap a slot in Your five to place this card.';
+    else els.switchHint.textContent = 'Tap a slot in Your five to change it.';
+  }
+  if (els.switchPanel) {
+    els.switchPanel.classList.toggle('is-idle', !switching || switchingYou);
+    els.switchPanel.classList.toggle('is-open', switching && !switchingYou);
+  }
+  if (els.switchGrid) {
+    els.switchGrid.innerHTML = switching && !switchingYou
+      ? renderSwitchGrid(candidates, pendingSwapId)
+      : '';
   }
   if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout, pendingSwapId);
+  if (els.albumBrowse) els.albumBrowse.classList.toggle('collapsed', !browseAllOpen);
+  if (els.browseAllBtn) els.browseAllBtn.textContent = browseAllOpen ? 'Hide album' : 'Browse all';
   if (els.loadoutRow) {
     const hydrated = campaign.player.map(hydrateOwned).filter(Boolean);
     const filled = campaign.loadout.map((uid, index) => {
       const card = hydrated.find((c) => c.uid === uid);
       if (!card) return '';
       const pinned = uid === you ? ' pinned' : '';
-      return `<div role="button" tabindex="0" class="loadout-slot filled${pinned}" data-uid="${card.uid}" data-index="${index}" draggable="false">${renderCard(card, { surface: `ld-${uid}`, owner: 'player', showName: true })}</div>`;
+      const chosen = pendingSlotIndex === index ? ' switching' : '';
+      const caption = uid === you ? 'Pinned You' : pendingSlotIndex === index ? 'Switching' : 'Tap to switch';
+      return `<div role="button" tabindex="0" class="loadout-slot filled${pinned}${chosen}" data-uid="${card.uid}" data-index="${index}" draggable="false">${renderCard(card, { surface: `ld-${uid}`, owner: 'player', showName: true })}<span class="slot-caption">${caption}</span></div>`;
     });
     while (filled.length < LOADOUT_SIZE) {
-      filled.push(`<div class="loadout-slot empty" data-index="${filled.length}" aria-hidden="true"></div>`);
+      const index = filled.length;
+      const chosen = pendingSlotIndex === index ? ' switching' : '';
+      filled.push(`<div role="button" tabindex="0" class="loadout-slot empty${chosen}" data-index="${index}"><span class="slot-caption">${pendingSlotIndex === index ? 'Fill this slot' : 'Empty'}</span></div>`);
     }
     els.loadoutRow.innerHTML = filled.join('');
   }
@@ -328,12 +370,17 @@ function renderAlbum() {
 
 function openAlbum(intent = 'browse') {
   albumIntent = intent;
+  pendingSlotIndex = null;
+  pendingSwapId = null;
+  browseAllOpen = false;
   els.album?.classList.remove('hidden');
   renderAlbum();
 }
 
 function closeAlbum() {
   pendingSwapId = null;
+  pendingSlotIndex = null;
+  browseAllOpen = false;
   cleanupDeckDrag();
   els.album?.classList.add('hidden');
 }
@@ -366,8 +413,19 @@ function toggleLoadoutCard(id) {
 function applyCardToSlot(cardId, slotIndex) {
   campaign = dragAlbumToSlot(campaign, cardId, slotIndex);
   pendingSwapId = null;
+  pendingSlotIndex = null;
   persist();
   renderAlbum();
+}
+
+function pickSwitchCard(id) {
+  if (!id) return;
+  const you = identityUid(campaign);
+  if (Number.isInteger(pendingSlotIndex) && campaign.loadout[pendingSlotIndex] !== you) {
+    applyCardToSlot(id, pendingSlotIndex);
+    return;
+  }
+  toggleLoadoutCard(id);
 }
 
 function clearDeckDropMarks() {
@@ -391,7 +449,7 @@ function dropTargetAt(x, y) {
   return {
     slot: el?.closest?.('.loadout-slot') || null,
     tile: el?.closest?.('.album-tile.owned') || null,
-    grid: el?.closest?.('#album-grid') || null,
+    grid: el?.closest?.('#album-grid, #switch-grid') || null,
     row: el?.closest?.('#loadout-row') || null,
   };
 }
@@ -501,7 +559,7 @@ function onDeckPointerUp(event) {
 
 function onAlbumPointerDown(event) {
   if (event.button !== undefined && event.button !== 0) return;
-  if (event.target.closest('button.seal-btn, button.text-btn, #album-confirm, #album-close')) return;
+  if (event.target.closest('button.seal-btn, button.text-btn, #album-confirm, #album-close, #browse-all-btn')) return;
   hideCardZoom();
   const slot = event.target.closest('.loadout-slot.filled');
   const tile = event.target.closest('.album-tile.owned');
@@ -1122,7 +1180,16 @@ els.albumGrid?.addEventListener('click', (event) => {
   }
   const tile = event.target.closest('.album-tile.owned');
   if (!tile) return;
-  toggleLoadoutCard(tile.dataset.id);
+  pickSwitchCard(tile.dataset.id);
+});
+els.switchGrid?.addEventListener('click', (event) => {
+  if (skipAlbumClick) {
+    skipAlbumClick = false;
+    return;
+  }
+  const tile = event.target.closest('.album-tile.owned');
+  if (!tile) return;
+  pickSwitchCard(tile.dataset.id);
 });
 els.loadoutRow?.addEventListener('click', (event) => {
   if (skipAlbumClick) {
@@ -1132,13 +1199,21 @@ els.loadoutRow?.addEventListener('click', (event) => {
   const slot = event.target.closest('.loadout-slot');
   if (!slot) return;
   const index = Number(slot.dataset.index);
+  const you = identityUid(campaign);
+  if (slot.dataset.uid && slot.dataset.uid === you) {
+    pendingSlotIndex = null;
+    renderAlbum();
+    return;
+  }
   if (pendingSwapId) {
     applyCardToSlot(pendingSwapId, Number.isInteger(index) ? index : 0);
     return;
   }
-  if (!slot.classList.contains('filled')) return;
-  campaign = removeLoadoutUid(campaign, slot.dataset.uid);
-  persist();
+  pendingSlotIndex = pendingSlotIndex === index ? null : index;
+  renderAlbum();
+});
+els.browseAllBtn?.addEventListener('click', () => {
+  browseAllOpen = !browseAllOpen;
   renderAlbum();
 });
 els.identityBtn?.addEventListener('click', openIdentity);

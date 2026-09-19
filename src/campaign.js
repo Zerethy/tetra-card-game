@@ -304,6 +304,23 @@ export function firstFreeCopy(campaign, cardId, loadout = campaign?.loadout) {
   return (campaign?.player || []).find((c) => c.id === cardId && !used.has(c.uid)) || null;
 }
 
+/** Owned cards not seated in the five. Identity is never a replacement. Strongest first. */
+export function switchCandidates(campaign, loadout = campaign?.loadout) {
+  const used = new Set(pruneLoadout({ ...campaign, loadout }));
+  const byId = new Map();
+  for (const owned of campaign?.player || []) {
+    if (!owned?.uid || used.has(owned.uid) || isIdentityId(owned.id)) continue;
+    const card = hydrateOwned(owned);
+    if (!card) continue;
+    const prev = byId.get(card.id);
+    if (!prev) byId.set(card.id, { ...card, copies: 1 });
+    else prev.copies += 1;
+  }
+  return [...byId.values()].sort(
+    (a, b) => rankCard(b) - rankCard(a) || String(a.name || a.id).localeCompare(String(b.name || b.id)),
+  );
+}
+
 export function sanitizeLoadout(campaign) {
   let loadout = pruneLoadout(campaign);
   const you = identityUid(campaign);

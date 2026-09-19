@@ -13,7 +13,7 @@ import {
 } from './game.js';
 import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId, DEFAULT_IDENTITY_ID } from './cards.js';
 import { chooseAiMove } from './ai.js';
-import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid, renderIdentityGrid, clashFlashHtml } from './ui.js';
+import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid, renderIdentityGrid, clashFlashHtml, renderSwitchGrid } from './ui.js';
 import {
   BOSSES,
   tradeTakeCount,
@@ -43,6 +43,7 @@ import {
   removeLoadoutUid,
   swapLoadoutWithAlbum,
   replaceableSlotIndex,
+  switchCandidates,
 } from './campaign.js';
 
 function card(partial) {
@@ -790,6 +791,27 @@ test('full loadout replaces a drop slot and never removes identity', () => {
   assert.match(grid, /pick-source/);
   assert.match(grid, /album-state is-locked/);
   assert.match(grid, /hellforge/);
+});
+
+test('switch candidates skip the seated five and identity, strongest first', () => {
+  const campaign = emptyCampaign();
+  const you = identityUid(campaign);
+  const seated = new Set(campaign.loadout);
+  const list = switchCandidates(campaign);
+  assert.ok(list.length >= 1);
+  assert.equal(list.some((c) => isIdentityId(c.id)), false);
+  assert.equal(list.some((c) => seated.has(c.uid)), false);
+  const html = renderSwitchGrid(list);
+  assert.match(html, /Switch in/);
+  assert.doesNotMatch(html, /identity-tile|you-rotbriar|In five/);
+  const withRelic = {
+    ...campaign,
+    player: [...campaign.player, { uid: 'hf-1', id: 'hellforge' }],
+  };
+  const ranked = switchCandidates(withRelic);
+  assert.equal(ranked[0].id, 'hellforge');
+  const swapped = dragAlbumToSlot(withRelic, 'hellforge', campaign.loadout.indexOf(you) === 0 ? 1 : 0);
+  assert.equal(switchCandidates(swapped).some((c) => c.id === 'hellforge'), false);
 });
 
 test('Death Match showdown always names a winner or a draw', () => {

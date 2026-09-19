@@ -203,10 +203,27 @@ export function renderAlbumGrid(campaign, loadout = [], pendingId = null) {
       const view = { ...card, uid: copies[0].uid, instanceId: copies[0].uid, owner: 'player' };
       return `<div role="button" tabindex="0" class="album-tile owned${inLoadout ? ' in-loadout' : ''}${seated ? ' seated' : ' available'}${picking}" data-id="${escapeText(card.id)}" data-uid="${escapeText(free.uid)}" draggable="false">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
-        <span class="album-count"><span class="album-state ${seated ? 'is-selected' : 'is-ready'}">${seated ? 'In five' : 'Available'}</span> · ${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ''}${seated ? '' : ' · drag in'}</span>
+        <span class="album-count"><span class="album-state ${seated ? 'is-selected' : 'is-ready'}">${seated ? 'In five' : 'Available'}</span> · ${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ''}</span>
       </div>`;
     });
   return identityTile + tiles.join('');
+}
+
+export function renderSwitchGrid(candidates = [], pendingId = null) {
+  if (!candidates.length) {
+    return '<p class="switch-empty">No other owned cards ready to switch in.</p>';
+  }
+  return candidates
+    .map((card) => {
+      const picking = pendingId === card.id ? ' pick-source' : '';
+      const view = { ...card, instanceId: card.uid || card.id, owner: 'player' };
+      const extra = card.copies > 1 ? ` · ${card.copies} ready` : '';
+      return `<div role="button" tabindex="0" class="album-tile owned available switch-tile${picking}" data-id="${escapeText(card.id)}" data-uid="${escapeText(card.uid)}" draggable="false">
+        ${renderCard(view, { surface: `sw-${card.uid || card.id}`, owner: 'player', showName: true })}
+        <span class="album-count"><span class="album-state is-ready">Switch in</span>${extra}</span>
+      </div>`;
+    })
+    .join('');
 }
 
 export function renderIdentityGrid(selectedId) {

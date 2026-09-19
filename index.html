@@ -89,12 +89,23 @@
     <div class="overlay hidden" id="album-overlay">
       <div class="help-card album-card">
         <h2>Card Album</h2>
-        <p class="lede" id="album-lede">Drag your best cards into the five slots. Drop on a slot to add or replace. Click a card, then a slot, to swap.</p>
-        <p class="setup-label">Duel five</p>
-        <p class="loadout-hint" id="loadout-hint">Drag your best cards into the five slots.</p>
+        <p class="lede" id="album-lede">Tap a slot in Your five, then pick a replacement. Identity stays pinned as You.</p>
+        <p class="setup-label" id="loadout-label">Your five</p>
+        <p class="loadout-hint" id="loadout-hint">Tap a slot to switch it.</p>
         <div class="loadout-row deck-tray" id="loadout-row"></div>
-        <p class="collection-line" id="album-progress"></p>
-        <div class="album-grid" id="album-grid"></div>
+        <section class="switch-panel is-idle" id="switch-panel">
+          <p class="setup-label" id="switch-label">Switch with these</p>
+          <p class="switch-hint" id="switch-hint">Tap a slot in Your five to change it.</p>
+          <div class="switch-grid" id="switch-grid"></div>
+        </section>
+        <div class="browse-toggle-row">
+          <button type="button" id="browse-all-btn" class="text-btn">Browse all</button>
+          <p class="collection-line" id="album-progress"></p>
+        </div>
+        <div class="album-browse collapsed" id="album-browse">
+          <p class="setup-label">Full album</p>
+          <div class="album-grid" id="album-grid"></div>
+        </div>
         <div class="title-actions">
           <button type="button" id="album-confirm" class="seal-btn">Use these five</button>
           <button type="button" id="album-close" class="text-btn">Close</button>
@@ -126,7 +137,7 @@
           <li>Captured cards can <strong>combo</strong> — they immediately compare their other sides against remaining neighbors.</li>
           <li>The board fills at 9 cards. Highest total of <strong>board + remaining hand</strong> wins.</li>
           <li>A fresh album is <strong>your identity</strong> plus <strong>level-1 beasts</strong>. Winning a stage unlocks the next rival (1 → 10).</li>
-          <li>Open the <strong>Album</strong> to inspect owned vs unknown cards and <strong>choose five</strong> for a duel. <strong>Drag your best cards into the five slots</strong> to add or replace. Drag within the five to reorder, or drag a chosen card out to remove. Click a card, then a slot, to swap. Your identity stays pinned as You.</li>
+          <li>Open the <strong>Album</strong>. <strong>Your five</strong> sit at the top — tap a slot, then pick from <strong>Switch with these</strong> (owned cards not already in the five, strongest first). Identity stays pinned. Drag still works; <em>Browse all</em> opens the full collection.</li>
         </ol>
         <p class="help-types">
           Cards are <strong>Levels 1–10</strong> (beasts through sovereigns). Boss 1 uses weak-tier Lv1 signatures, beatable with starters. Mid bosses step up and add one stronger ultimate. Boss 10 keeps a full late kit and is hard, not unwinnable.
