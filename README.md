@@ -103,6 +103,12 @@ A new save starts at **Stage 1** only. Winning a stage unlocks the next. Boss ca
 
 Stage 10 is the **hardest** fight, not an unwinnable wall. A climbed album of earned ultimates can beat it with good play. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb.
 
+### Difficulty tiers
+
+- **Early (Stages 1–5).** No 8–A sides. Peaks are 5–7. Lady Vesper (Stage 1) is beatable with starter level-1 cards and careful placement — not a coin-flip against stacked 8s.
+- **Mid (Stages 6–7).** First warlord **8-sides** appear after the player has earned mid beasts.
+- **Late (Stages 8–10).** True 8–A relics and sovereigns. Full ultimates stay in the wager; later stages may draw several into hand. Stage 10 is hardest, still beatable with a climbed album.
+
 ## Trades, bosses, and Death Match
 
 Before **New Match**, pick a **trade rule** and an unlocked stage. Your session album is stored in `localStorage`.

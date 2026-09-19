@@ -79,10 +79,12 @@ const els = {
   deathNote: document.getElementById('death-note'),
   deathGo: document.getElementById('death-go'),
   deathDone: document.getElementById('death-done'),
+  zoom: document.getElementById('card-zoom'),
 };
 
 let campaign = loadCampaign();
 let match = null;
+let zoomSource = null;
 let selected = null;
 let busy = false;
 let lastPlaced = null;
@@ -260,7 +262,49 @@ function startMatch() {
   beginDuel();
 }
 
+function hideCardZoom() {
+  zoomSource = null;
+  if (!els.zoom) return;
+  els.zoom.classList.add('hidden');
+  els.zoom.innerHTML = '';
+}
+
+function placeCardZoom(cardEl) {
+  if (!els.zoom || !cardEl) return;
+  const r = cardEl.getBoundingClientRect();
+  const w = 220;
+  const h = 308;
+  let left;
+  let top;
+  if (r.bottom > window.innerHeight * 0.62) {
+    left = r.left + r.width / 2 - w / 2;
+    top = r.top - h - 14;
+  } else if (window.innerWidth - r.right > w + 16) {
+    left = r.right + 14;
+    top = r.top + r.height / 2 - h / 2;
+  } else {
+    left = r.left - w - 14;
+    top = r.top + r.height / 2 - h / 2;
+  }
+  left = Math.min(Math.max(12, left), window.innerWidth - w - 12);
+  top = Math.min(Math.max(12, top), window.innerHeight - h - 12);
+  els.zoom.style.left = `${left}px`;
+  els.zoom.style.top = `${top}px`;
+}
+
+function showCardZoom(cardEl) {
+  if (!els.zoom || !cardEl || cardEl.classList.contains('face-down')) return;
+  if (cardEl.closest('.card-zoom')) return;
+  zoomSource = cardEl;
+  els.zoom.innerHTML = cardEl.outerHTML;
+  const preview = els.zoom.querySelector('.tm-card');
+  preview?.classList.remove('selected', 'just-placed', 'just-captured');
+  els.zoom.classList.remove('hidden');
+  placeCardZoom(cardEl);
+}
+
 function render() {
+  hideCardZoom();
   if (!match) {
     els.board.innerHTML = '';
     els.playerRail.innerHTML = '';
@@ -705,6 +749,19 @@ els.claimGrid?.addEventListener('click', (event) => {
   claimState.selected = [...set];
   renderClaimGrid();
 });
+
+document.addEventListener('pointerover', (event) => {
+  const card = event.target.closest?.('.tm-card');
+  if (!card || card.classList.contains('face-down') || card.closest('.card-zoom')) return;
+  showCardZoom(card);
+});
+document.addEventListener('pointerout', (event) => {
+  const card = event.target.closest?.('.tm-card');
+  if (!card || card.closest('.card-zoom')) return;
+  if (event.relatedTarget && card.contains(event.relatedTarget)) return;
+  if (zoomSource === card) hideCardZoom();
+});
+window.addEventListener('scroll', hideCardZoom, true);
 
 els.claimConfirm?.addEventListener('click', confirmClaim);
 els.deathOptin?.addEventListener('click', () => openDeathMatch({ fromTitle: false }));

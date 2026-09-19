@@ -450,6 +450,11 @@ test('ten stages climb from weak Vesper to full-power Cindervow', () => {
     assert.ok(deck.every((c) => c.level <= boss.maxLevel), `${boss.id} broke cap`);
     const preferred = preferUltimates(deck, boss.ultimates).slice(0, 3);
     assert.equal(preferred.every((c) => boss.ultimates.includes(c.id)), true);
+    if (boss.stage <= 5) {
+      for (const card of deck) {
+        assert.ok(maxRank(card) <= 7, `${boss.id} early deck has ${card.id} peak ${maxRank(card)}`);
+      }
+    }
   }
 });
 
