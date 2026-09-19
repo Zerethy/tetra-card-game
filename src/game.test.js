@@ -40,6 +40,7 @@ import {
   moveLoadoutIndex,
   removeLoadoutUid,
   swapLoadoutWithAlbum,
+  replaceableSlotIndex,
 } from './campaign.js';
 
 function card(partial) {
@@ -656,6 +657,36 @@ test('album loadout drag adds, replaces, reorders, and refuses to drop identity'
   const swapped = swapLoadoutWithAlbum(removed, swapFrom, 'nightbloom');
   assert.ok(swapped.player.filter((c) => swapped.loadout.includes(c.uid)).some((c) => c.id === 'nightbloom'));
   assert.equal(pruneLoadout(removed).includes(other), false);
+});
+
+test('full loadout replaces a drop slot and never removes identity', () => {
+  const campaign = emptyCampaign();
+  const you = identityUid(campaign);
+  assert.equal(campaign.loadout.length, LOADOUT_SIZE);
+  const youIndex = campaign.loadout.indexOf(you);
+  const target = youIndex === 0 ? 1 : 0;
+  const before = campaign.loadout[target];
+  const withRelic = {
+    ...campaign,
+    player: [...campaign.player, { uid: 'hf-1', id: 'hellforge' }],
+  };
+  const replaced = dragAlbumToSlot(withRelic, 'hellforge', target);
+  assert.equal(replaced.loadout[target], 'hf-1');
+  assert.ok(replaced.loadout.includes(you));
+  assert.equal(replaced.loadout.includes(before), false);
+  const ontoYou = dragAlbumToSlot(withRelic, 'hellforge', youIndex);
+  assert.ok(ontoYou.loadout.includes(you));
+  assert.ok(ontoYou.loadout.includes('hf-1'));
+  assert.equal(ontoYou.loadout[youIndex], you);
+  const ontoEnd = dragAlbumToSlot(withRelic, 'hellforge', LOADOUT_SIZE - 1);
+  assert.ok(ontoEnd.loadout.includes('hf-1'));
+  assert.ok(ontoEnd.loadout.includes(you));
+  const idx = replaceableSlotIndex(campaign, youIndex);
+  assert.notEqual(idx, youIndex);
+  const grid = renderAlbumGrid(withRelic, withRelic.loadout, 'hellforge');
+  assert.match(grid, /pick-source/);
+  assert.match(grid, /album-state is-locked/);
+  assert.match(grid, /hellforge/);
 });
 
 test('Death Match showdown always names a winner or a draw', () => {

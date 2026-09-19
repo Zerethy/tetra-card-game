@@ -121,7 +121,8 @@ let claimState = null;
 let deathState = null;
 let albumIntent = 'browse';
 let pendingIdentity = null;
-const DRAG_THRESHOLD = 8;
+let pendingSwapId = null;
+const DRAG_THRESHOLD = 4;
 let deckDrag = null;
 let skipAlbumClick = false;
 
@@ -301,18 +302,16 @@ function renderAlbum() {
     els.albumProgress.textContent = `${progress.owned} / ${progress.total} unique · duel five ${campaign.loadout.length}/${LOADOUT_SIZE}`;
   }
   if (els.albumLede) {
-    els.albumLede.textContent = albumIntent === 'duel'
-      ? 'Drag five champions into the tray for this duel — drop onto a slot to add or replace, drag within the five to reorder. Click still toggles. Rotbriar (or your bound You card) stays pinned.'
-      : 'Owned cards are face-up. Unknown cards stay silhouettes. Drag a card into the five to add or replace; drag a chosen card back to the album to remove. Click still toggles. Your identity sits first and stays pinned as You.';
+    els.albumLede.textContent = 'Drag your best cards into the five slots. Drop on a slot to add or replace. Click a card, then a slot, to swap. Your identity stays pinned as You.';
   }
-  if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout);
+  if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout, pendingSwapId);
   if (els.loadoutRow) {
     const hydrated = campaign.player.map(hydrateOwned).filter(Boolean);
     const filled = campaign.loadout.map((uid, index) => {
       const card = hydrated.find((c) => c.uid === uid);
       if (!card) return '';
       const pinned = uid === you ? ' pinned' : '';
-      return `<button type="button" class="loadout-slot filled${pinned}" data-uid="${card.uid}" data-index="${index}">${renderCard(card, { surface: `ld-${uid}`, owner: 'player', showName: true })}</button>`;
+      return `<div role="button" tabindex="0" class="loadout-slot filled${pinned}" data-uid="${card.uid}" data-index="${index}" draggable="false">${renderCard(card, { surface: `ld-${uid}`, owner: 'player', showName: true })}</div>`;
     });
     while (filled.length < LOADOUT_SIZE) {
       filled.push(`<div class="loadout-slot empty" data-index="${filled.length}" aria-hidden="true"></div>`);
@@ -332,6 +331,8 @@ function openAlbum(intent = 'browse') {
 }
 
 function closeAlbum() {
+  pendingSwapId = null;
+  cleanupDeckDrag();
   els.album?.classList.add('hidden');
 }
 
@@ -348,16 +349,21 @@ function toggleLoadoutCard(id) {
   if (!copies.length) return;
   campaign.loadout = pruneLoadout(campaign);
   const used = new Set(campaign.loadout);
-  const you = identityUid(campaign);
   const free = copies.find((c) => !used.has(c.uid));
-  if (free) {
-    if (campaign.loadout.length >= LOADOUT_SIZE) return;
+  if (free && campaign.loadout.length < LOADOUT_SIZE) {
     campaign.loadout = [...campaign.loadout, free.uid];
-  } else {
-    const remove = copies.find((c) => used.has(c.uid));
-    if (!remove || remove.uid === you) return;
-    campaign.loadout = campaign.loadout.filter((uid) => uid !== remove.uid);
+    pendingSwapId = null;
+    persist();
+    renderAlbum();
+    return;
   }
+  pendingSwapId = pendingSwapId === id ? null : id;
+  renderAlbum();
+}
+
+function applyCardToSlot(cardId, slotIndex) {
+  campaign = dragAlbumToSlot(campaign, cardId, slotIndex);
+  pendingSwapId = null;
   persist();
   renderAlbum();
 }
@@ -371,7 +377,7 @@ function clearDeckDropMarks() {
 function cleanupDeckDrag() {
   deckDrag?.ghost?.remove();
   deckDrag?.originEl?.classList.remove('is-dragging');
-  document.body.classList.remove('deck-dragging');
+  document.body.classList.remove('deck-dragging', 'deck-pending');
   clearDeckDropMarks();
   deckDrag = null;
 }
@@ -431,8 +437,14 @@ function beginDeckDrag(event) {
   }
 }
 
+function sameDeckPointer(event) {
+  if (!deckDrag) return false;
+  if (event.pointerId == null) return true;
+  return event.pointerId === deckDrag.pointerId;
+}
+
 function onDeckPointerMove(event) {
-  if (!deckDrag || event.pointerId !== deckDrag.pointerId) return;
+  if (!sameDeckPointer(event)) return;
   const dx = event.clientX - deckDrag.origin.x;
   const dy = event.clientY - deckDrag.origin.y;
   if (deckDrag.phase === 'pending' && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
@@ -469,7 +481,7 @@ function commitDeckDrop(payload, x, y) {
 }
 
 function onDeckPointerUp(event) {
-  if (!deckDrag || event.pointerId !== deckDrag.pointerId) return;
+  if (!sameDeckPointer(event)) return;
   const wasDragging = deckDrag.phase === 'dragging';
   const payload = deckDrag.payload;
   const x = event.clientX;
@@ -488,28 +500,26 @@ function onDeckPointerUp(event) {
 function onAlbumPointerDown(event) {
   if (event.button !== undefined && event.button !== 0) return;
   if (event.target.closest('button.seal-btn, button.text-btn, #album-confirm, #album-close')) return;
+  hideCardZoom();
   const slot = event.target.closest('.loadout-slot.filled');
   const tile = event.target.closest('.album-tile.owned');
-  if (slot) {
-    deckDrag = {
-      phase: 'pending',
-      pointerId: event.pointerId,
-      origin: { x: event.clientX, y: event.clientY },
-      originEl: slot,
-      payload: { source: 'loadout', uid: slot.dataset.uid, index: Number(slot.dataset.index) },
-      ghost: null,
-    };
-    return;
-  }
-  if (tile) {
-    deckDrag = {
-      phase: 'pending',
-      pointerId: event.pointerId,
-      origin: { x: event.clientX, y: event.clientY },
-      originEl: tile,
-      payload: { source: 'album', id: tile.dataset.id },
-      ghost: null,
-    };
+  const originEl = slot || tile;
+  if (!originEl) return;
+  deckDrag = {
+    phase: 'pending',
+    pointerId: event.pointerId ?? 1,
+    origin: { x: event.clientX, y: event.clientY },
+    originEl,
+    payload: slot
+      ? { source: 'loadout', uid: slot.dataset.uid, index: Number(slot.dataset.index) }
+      : { source: 'album', id: tile.dataset.id },
+    ghost: null,
+  };
+  document.body.classList.add('deck-pending');
+  try {
+    originEl.setPointerCapture(event.pointerId);
+  } catch {
+    /* capture is optional */
   }
 }
 
@@ -594,6 +604,8 @@ function placeCardZoom(cardEl, onBoard = false) {
 function showCardZoom(cardEl) {
   if (!els.zoom || !cardEl || cardEl.classList.contains('face-down')) return;
   if (cardEl.closest('.card-zoom') || document.body.classList.contains('deck-dragging')) return;
+  if (document.body.classList.contains('deck-pending')) return;
+  if (cardEl.closest('#album-overlay')) return;
   zoomSource = cardEl;
   const onBoard = Boolean(cardEl.closest('.board .cell'));
   els.zoom.classList.toggle('on-board', onBoard);
@@ -1084,10 +1096,26 @@ els.albumBtn?.addEventListener('click', () => openAlbum('browse'));
 els.albumClose?.addEventListener('click', closeAlbum);
 els.albumConfirm?.addEventListener('click', confirmAlbum);
 els.album?.addEventListener('pointerdown', onAlbumPointerDown);
+els.album?.addEventListener('mousedown', (event) => {
+  if (event.button !== 0) return;
+  if (deckDrag) return;
+  onAlbumPointerDown(event);
+});
 document.addEventListener('pointermove', onDeckPointerMove, { passive: false });
+document.addEventListener('mousemove', (event) => {
+  if (!deckDrag) return;
+  onDeckPointerMove(event);
+});
 document.addEventListener('pointerup', onDeckPointerUp);
+document.addEventListener('mouseup', (event) => {
+  if (!deckDrag) return;
+  onDeckPointerUp(event);
+});
 document.addEventListener('pointercancel', (event) => {
   if (deckDrag && event.pointerId === deckDrag.pointerId) cleanupDeckDrag();
+});
+els.album?.addEventListener('dragstart', (event) => {
+  event.preventDefault();
 });
 els.albumGrid?.addEventListener('click', (event) => {
   if (skipAlbumClick) {
@@ -1103,8 +1131,14 @@ els.loadoutRow?.addEventListener('click', (event) => {
     skipAlbumClick = false;
     return;
   }
-  const slot = event.target.closest('.loadout-slot.filled');
+  const slot = event.target.closest('.loadout-slot');
   if (!slot) return;
+  const index = Number(slot.dataset.index);
+  if (pendingSwapId) {
+    applyCardToSlot(pendingSwapId, Number.isInteger(index) ? index : 0);
+    return;
+  }
+  if (!slot.classList.contains('filled')) return;
   campaign = removeLoadoutUid(campaign, slot.dataset.uid);
   persist();
   renderAlbum();

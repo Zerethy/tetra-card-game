@@ -156,7 +156,7 @@ export function renderAlbumLocked(card) {
   </article>`;
 }
 
-export function renderAlbumGrid(campaign, loadout = []) {
+export function renderAlbumGrid(campaign, loadout = [], pendingId = null) {
   const selected = new Set(loadout);
   const copiesById = new Map();
   for (const owned of campaign.player || []) {
@@ -171,27 +171,38 @@ export function renderAlbumGrid(campaign, loadout = []) {
         const inLoadout = selected.has(identityOwned.uid);
         const view = { ...card, uid: identityOwned.uid, instanceId: identityOwned.uid, owner: 'player' };
         const seat = inLoadout ? ' seated' : ' available';
-        return `<button type="button" class="album-tile owned identity-tile pinned${inLoadout ? ' in-loadout' : ''}${seat}" data-id="${escapeText(card.id)}" data-uid="${escapeText(identityOwned.uid)}" data-pinned="1">
+        const picking = pendingId === card.id ? ' pick-source' : '';
+        return `<div role="button" tabindex="0" class="album-tile owned identity-tile pinned${inLoadout ? ' in-loadout' : ''}${seat}${picking}" data-id="${escapeText(card.id)}" data-uid="${escapeText(identityOwned.uid)}" data-pinned="1" draggable="false">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
         <span class="album-count"><span class="album-state ${inLoadout ? 'is-selected' : 'is-ready'}">${inLoadout ? 'In five' : 'Available'}</span> · You · ${inLoadout ? 'pinned' : 'owned'}</span>
-      </button>`;
+      </div>`;
       })()
     : '';
   const tiles = ROSTER.slice()
-    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name))
+    .sort((a, b) => {
+      const ao = copiesById.has(a.id) ? 0 : 1;
+      const bo = copiesById.has(b.id) ? 0 : 1;
+      if (ao !== bo) return ao - bo;
+      if (ao === 0) return b.level - a.level || a.name.localeCompare(b.name);
+      return a.level - b.level || a.name.localeCompare(b.name);
+    })
     .map((card) => {
       const copies = copiesById.get(card.id) || [];
       if (!copies.length) {
-        return `<div class="album-tile locked" data-id="${escapeText(card.id)}">${renderAlbumLocked(card)}</div>`;
+        return `<div class="album-tile locked" data-id="${escapeText(card.id)}" aria-disabled="true" title="Not yet owned">
+          ${renderAlbumLocked(card)}
+          <span class="album-count"><span class="album-state is-locked">Locked</span> · unknown</span>
+        </div>`;
       }
       const inLoadout = copies.filter((c) => selected.has(c.uid)).length;
       const free = copies.find((c) => !selected.has(c.uid)) || copies[0];
       const seated = inLoadout === copies.length;
+      const picking = pendingId === card.id ? ' pick-source' : '';
       const view = { ...card, uid: copies[0].uid, instanceId: copies[0].uid, owner: 'player' };
-      return `<button type="button" class="album-tile owned${inLoadout ? ' in-loadout' : ''}${seated ? ' seated' : ' available'}" data-id="${escapeText(card.id)}" data-uid="${escapeText(free.uid)}">
+      return `<div role="button" tabindex="0" class="album-tile owned${inLoadout ? ' in-loadout' : ''}${seated ? ' seated' : ' available'}${picking}" data-id="${escapeText(card.id)}" data-uid="${escapeText(free.uid)}" draggable="false">
         ${renderCard(view, { surface: `al-${card.id}`, owner: 'player', showName: true })}
         <span class="album-count"><span class="album-state ${seated ? 'is-selected' : 'is-ready'}">${seated ? 'In five' : 'Available'}</span> · ${copies.length} owned${inLoadout ? ` · ${inLoadout} in five` : ''}${seated ? '' : ' · drag in'}</span>
-      </button>`;
+      </div>`;
     });
   return identityTile + tiles.join('');
 }

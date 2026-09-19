@@ -1487,12 +1487,24 @@ button {
 }
 
 .album-tile.locked {
-  cursor: default;
+  cursor: not-allowed;
   touch-action: auto;
+  opacity: 0.72;
+  filter: grayscale(0.35);
+}
+
+.album-tile.owned {
+  cursor: grab;
 }
 
 .album-tile.available {
   cursor: grab;
+}
+
+.album-tile.pick-source {
+  outline: 3px solid #d4a84a;
+  outline-offset: 2px;
+  border-radius: 8px;
 }
 
 .album-tile.available .tm-card {
@@ -1531,9 +1543,9 @@ button {
   color: #f3e8ff;
 }
 
-.album-state.is-ready {
-  background: #3a2408;
-  color: #ffe27a;
+.album-state.is-locked {
+  background: #241018;
+  color: #c8b4e8;
 }
 
 .album-tile.seated .album-count {
@@ -1565,13 +1577,13 @@ button {
 }
 
 .loadout-hint {
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 11px;
+  display: block;
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 13px;
   letter-spacing: 0.04em;
-  text-transform: none;
-  color: #6a4820;
-  font-weight: 600;
+  color: #5a148f;
+  font-weight: 700;
 }
 
 .loadout-row,
@@ -1655,6 +1667,23 @@ body.deck-dragging * {
   user-select: none;
 }
 
+#album-overlay .tm-card,
+#album-overlay .tm-card *,
+#album-overlay svg,
+#album-overlay img {
+  -webkit-user-drag: none !important;
+  user-select: none;
+}
+
+#album-overlay .tm-art,
+#album-overlay .tm-art svg,
+#album-overlay .tm-sheen,
+#album-overlay .tm-ranks,
+#album-overlay .you-tag {
+  pointer-events: none;
+}
+
+body.deck-pending .card-zoom,
 body.deck-dragging .card-zoom {
   display: none !important;
 }

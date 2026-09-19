@@ -332,27 +332,60 @@ export function removeLoadoutUid(campaign, uid) {
   return { ...campaign, loadout: pruneLoadout(campaign).filter((entry) => entry !== uid) };
 }
 
-export function dragAlbumToSlot(campaign, cardId, slotIndex) {
-  if (!cardId || !Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= LOADOUT_SIZE) {
-    return campaign;
-  }
+export function replaceableSlotIndex(campaign, preferredIndex = 0) {
   const loadout = pruneLoadout(campaign);
   const you = identityUid(campaign);
+  if (
+    Number.isInteger(preferredIndex) &&
+    preferredIndex >= 0 &&
+    preferredIndex < loadout.length &&
+    loadout[preferredIndex] !== you
+  ) {
+    return preferredIndex;
+  }
+  if (loadout.length < LOADOUT_SIZE) return loadout.length;
+  const start = Number.isInteger(preferredIndex) && preferredIndex > 0 ? preferredIndex : 0;
+  for (let step = 0; step < loadout.length; step += 1) {
+    const index = (start + step) % loadout.length;
+    if (loadout[index] !== you) return index;
+  }
+  return -1;
+}
+
+export function dragAlbumToSlot(campaign, cardId, slotIndex) {
+  if (!cardId) return campaign;
+  const loadout = pruneLoadout(campaign);
+  const you = identityUid(campaign);
+  let index = slotIndex;
+  if (!Number.isInteger(index) || index < 0 || index >= LOADOUT_SIZE) {
+    index = loadout.length < LOADOUT_SIZE ? loadout.length : 0;
+  }
+  if (loadout[index] === you || index >= loadout.length) {
+    index = replaceableSlotIndex(campaign, index);
+    if (index < 0) return campaign;
+  }
   const free = firstFreeCopy(campaign, cardId, loadout);
   if (free) {
-    if (slotIndex >= loadout.length) {
-      if (loadout.length >= LOADOUT_SIZE) return campaign;
-      return { ...campaign, loadout: [...loadout, free.uid] };
+    if (index >= loadout.length) {
+      if (loadout.length >= LOADOUT_SIZE) {
+        index = replaceableSlotIndex(campaign, 0);
+        if (index < 0 || index >= loadout.length) return campaign;
+      } else {
+        return { ...campaign, loadout: [...loadout, free.uid] };
+      }
     }
-    const occupant = loadout[slotIndex];
-    if (occupant === you && free.uid !== you) return campaign;
+    if (loadout[index] === you && free.uid !== you) {
+      index = replaceableSlotIndex(campaign, index);
+      if (index < 0 || index >= loadout.length) return campaign;
+    }
     const next = loadout.slice();
-    next[slotIndex] = free.uid;
+    next[index] = free.uid;
     return { ...campaign, loadout: next };
   }
   const existingIdx = loadout.findIndex((uid) => campaign.player.find((card) => card.uid === uid)?.id === cardId);
   if (existingIdx >= 0) {
-    return moveLoadoutIndex({ ...campaign, loadout }, existingIdx, Math.min(slotIndex, loadout.length - 1));
+    const dest = Math.min(Math.max(0, index), loadout.length - 1);
+    return moveLoadoutIndex({ ...campaign, loadout }, existingIdx, dest);
   }
   return campaign;
 }
