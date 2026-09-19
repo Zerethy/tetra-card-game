@@ -86,7 +86,7 @@ Rivals play from their drawn hand. Each stage scores legal (card, empty square) 
 
 ## Climb (Stage 1 → 10)
 
-A new save starts at **Stage 1** only. Winning a stage unlocks the next. Boss card peaks are **not nerfed** — early fights use weaker signatures, and late bosses keep full ultimates.
+A new save starts at **Stage 1** only. Winning a stage unlocks the next. **Printed late-boss ranks are not softened** — Hellforge Tyrant is still 10/9/8/8. You earn the right to face those cards by climbing; you do not fight them on a fresh album.
 
 | Stage | Rival | Signature band | Deck cap |
 |-------|--------|----------------|----------|
@@ -103,11 +103,9 @@ A new save starts at **Stage 1** only. Winning a stage unlocks the next. Boss ca
 
 Stage 10 is the **hardest** fight, not an unwinnable wall. A climbed album of earned ultimates can beat it with good play. Each rival still carries **three signature ultimates** in the wager; claiming them is the reward climb.
 
-### Difficulty tiers
+### How difficulty is gated
 
-- **Early (Stages 1–5).** No 8–A sides. Peaks are 5–7. Lady Vesper (Stage 1) is beatable with starter level-1 cards and careful placement — not a coin-flip against stacked 8s.
-- **Mid (Stages 6–7).** First warlord **8-sides** appear after the player has earned mid beasts.
-- **Late (Stages 8–10).** True 8–A relics and sovereigns. Full ultimates stay in the wager; later stages may draw several into hand. Stage 10 is hardest, still beatable with a climbed album.
+We do **not** nerf boss stats or hide 8–A sides from late kits. Early stages are weaker *rivals* (Level 1–5 signatures). Mid stages introduce warlords. Stages 8–10 are the named lieges with their full ultimates in the wager — multiple high sides included. Stage 10 is the hardest fight, still beatable with a climbed album.
 
 ## Trades, bosses, and Death Match
 

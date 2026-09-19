@@ -75,7 +75,7 @@ export const BOSSES = [
     name: 'Kael the Oathbound',
     short: 'Kael',
     title: 'First Vow',
-    blurb: 'Stage 6. The first warlords. Soft peaks, not relics.',
+    blurb: 'Stage 6. The first warlords. Unlocked after the beast climb.',
     ultimates: ['iron-vow', 'voidglass', 'shard-knight'],
     maxLevel: 6,
   },
