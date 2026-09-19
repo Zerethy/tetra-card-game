@@ -1,4 +1,4 @@
-import { ROSTER, cardById, levelOf, totalValue, IDENTITIES, isIdentityId, identityById } from './cards.js';
+import { ROSTER, cardById, levelOf, totalValue, IDENTITIES, isIdentityId, identityById, DEFAULT_IDENTITY_ID } from './cards.js';
 import {
   DECK_SIZE,
   PLAYER_STARTER_MAX_LEVEL,
@@ -326,9 +326,7 @@ export function emptyCampaign(options = {}) {
     loadout: [],
     identityId: null,
   };
-  if (options.identityId) return bindIdentity(campaign, options.identityId);
-  campaign.loadout = sanitizeLoadout(campaign);
-  return campaign;
+  return bindIdentity(campaign, options.identityId || DEFAULT_IDENTITY_ID);
 }
 
 export function isRivalUnlocked(boss, unlockedStage) {
@@ -353,11 +351,8 @@ export function loadCampaign() {
     if (!isRivalUnlocked(bossById(rival), unlockedStage)) {
       rival = [...BOSSES].filter((b) => isRivalUnlocked(b, unlockedStage)).pop()?.id || 'vesper';
     }
-    const identityId = IDENTITIES.some((i) => i.id === parsed.identityId) ? parsed.identityId : null;
-    if (identityId && !player.some((c) => c.id === identityId)) {
-      player.unshift(ownedFromTemplate(identityById(identityId)));
-    }
-    return {
+    let identityId = IDENTITIES.some((i) => i.id === parsed.identityId) ? parsed.identityId : DEFAULT_IDENTITY_ID;
+    const loaded = {
       player,
       trade: TRADE_RULES.some((r) => r.id === parsed.trade) ? parsed.trade : 'one',
       rival,
@@ -365,11 +360,13 @@ export function loadCampaign() {
       offerDeathMatch: Boolean(parsed.offerDeathMatch),
       unlockedStage,
       identityId,
-      loadout: sanitizeLoadout({
-        player,
-        loadout: Array.isArray(parsed.loadout) ? parsed.loadout : [],
-      }),
+      loadout: Array.isArray(parsed.loadout) ? parsed.loadout : [],
     };
+    if (!loaded.player.some((c) => isIdentityId(c.id))) {
+      return bindIdentity(loaded, identityId);
+    }
+    loaded.loadout = sanitizeLoadout(loaded);
+    return loaded;
   } catch {
     return emptyCampaign();
   }

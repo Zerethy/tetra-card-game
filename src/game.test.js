@@ -11,7 +11,7 @@ import {
   elementModifier,
   PLAYER_STARTER_MAX_LEVEL,
 } from './game.js';
-import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId } from './cards.js';
+import { rarityOf, frameOf, loreOf, ROSTER, LEVELS, totalValue, maxRank, levelOf, IDENTITIES, isIdentityId, DEFAULT_IDENTITY_ID } from './cards.js';
 import { chooseAiMove } from './ai.js';
 import { renderCard, renderCardBack, renderElementWheel, renderAlbumGrid, renderIdentityGrid } from './ui.js';
 import {
@@ -578,21 +578,34 @@ test('album progress starts at three unique beasts and a five-card loadout', () 
   assert.match(html, /\?\?\?/);
 });
 
-test('identity cards are modest, pinned, and cannot be traded away', () => {
+test('identity cards are strong signatures, pinned, and cannot be traded away', () => {
+  assert.equal(DEFAULT_IDENTITY_ID, 'you-rotbriar');
   assert.equal(IDENTITIES.length, 9);
   assert.equal(new Set(IDENTITIES.map((c) => c.element)).size, 9);
   for (const card of IDENTITIES) {
-    assert.ok(card.level <= 2, card.id);
+    const total = totalValue(card);
+    const peak = maxRank(card);
+    assert.equal(card.level, 8, card.id);
+    assert.ok(total >= 30 && total <= 34, `${card.id} total ${total}`);
+    assert.ok(peak >= 8 && peak <= 9, `${card.id} peak ${peak}`);
     assert.ok(isIdentityId(card.id));
     assert.match(loreOf(card).kind, /Identity/);
   }
-  const pick = renderIdentityGrid('you-cinderpath');
-  assert.match(pick, /Cinderpath/);
-  assert.match(pick, /Fire/);
+  const rot = IDENTITIES.find((c) => c.id === 'you-rotbriar');
+  assert.equal(rot.element, 'poison');
+  assert.deepEqual([rot.top, rot.right, rot.bottom, rot.left], [8, 7, 9, 8]);
+  const pick = renderIdentityGrid('you-rotbriar');
+  assert.match(pick, /Rotbriar/);
+  assert.match(pick, /Poison/);
+  assert.match(pick, /Recommended/);
   assert.match(pick, /identity-pick selected/);
+  const fresh = emptyCampaign();
+  assert.equal(fresh.identityId, 'you-rotbriar');
+  assert.ok(fresh.player.some((c) => c.id === 'you-rotbriar'));
   const bound = bindIdentity(emptyCampaign(), 'you-cinderpath');
   assert.equal(bound.identityId, 'you-cinderpath');
   assert.ok(bound.player.some((c) => c.id === 'you-cinderpath'));
+  assert.equal(bound.player.filter((c) => isIdentityId(c.id)).length, 1);
   assert.deepEqual(albumProgress(bound), { owned: 3, total: 22 });
   const uid = bound.player.find((c) => c.id === 'you-cinderpath').uid;
   assert.ok(bound.loadout.includes(uid));

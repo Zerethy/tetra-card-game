@@ -1,4 +1,4 @@
-import { hexDigit, rarityOf, frameOf, loreOf, levelOf, ELEMENT_RINGS, cardById, totalValue, ROSTER, IDENTITIES, isIdentityId } from './cards.js';
+import { hexDigit, rarityOf, frameOf, loreOf, levelOf, ELEMENT_RINGS, cardById, totalValue, ROSTER, IDENTITIES, isIdentityId, DEFAULT_IDENTITY_ID } from './cards.js';
 import { creatureSVG, cardBackSVG, elementGlyph } from './art.js';
 
 function escapeText(value) {
@@ -196,10 +196,12 @@ export function renderAlbumGrid(campaign, loadout = []) {
 export function renderIdentityGrid(selectedId) {
   return IDENTITIES.map((card) => {
     const view = { ...card, instanceId: card.id, owner: 'player' };
+    const recommended = card.id === DEFAULT_IDENTITY_ID ? ' recommended' : '';
     const sel = selectedId === card.id ? ' selected' : '';
     const elName = ELEMENT_TITLE[card.element] || card.element;
-    return `<button type="button" class="identity-pick${sel}" data-id="${escapeText(card.id)}" title="${escapeText(card.vibe)}">
+    return `<button type="button" class="identity-pick${sel}${recommended}" data-id="${escapeText(card.id)}" title="${escapeText(card.vibe)}">
       ${renderCard(view, { surface: `id-${card.id}`, owner: 'player', showName: true })}
+      ${recommended ? '<span class="rec-tag">Recommended</span>' : ''}
       <span class="identity-el el-${escapeText(card.element)}">${escapeText(elName)} · ${escapeText(card.title)}</span>
       <span class="identity-vibe">${escapeText(card.vibe)}</span>
     </button>`;

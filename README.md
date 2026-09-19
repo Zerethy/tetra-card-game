@@ -49,7 +49,7 @@ A **fresh album** is your **identity card** plus eight **level-1 beasts** (copie
 
 The **Album** lists every roster card: owned copies face-up, unknown cards as silhouettes, plus your identity pinned as **You**. Before **New Match**, pick **five** owned cards for the duel. The five persist in `localStorage`.
 
-**Identity** is chosen at the first title (or via the Identity button). Nine original seekers, one per element, sit at modest level-2 power so the climb still matters. That card always stays in the album and can be one of the five.
+**Identity** defaults to **Rotbriar** (poison, dark-druid / Sweet-Thorn). You can still change it on the Identity screen. The You card is a strong signature — level 8, sides totaling 30–34 with peaks 8–9 — not a Stage 10 sovereign wall. It always stays in the album and can be one of the five. Existing saves pick up the new stats on load.
 
 All names and illustrations are original dark-fantasy champions — paladins, liches, demon lords, constructs, and boss-like beasts — drawn as SVG, not ripped from other games.
 

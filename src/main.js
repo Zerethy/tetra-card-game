@@ -40,7 +40,7 @@ import {
   sanitizeLoadout,
   bindIdentity,
 } from './campaign.js';
-import { cardById } from './cards.js';
+import { cardById, DEFAULT_IDENTITY_ID } from './cards.js';
 
 const els = {
   title: document.getElementById('title-overlay'),
@@ -355,7 +355,7 @@ function renderIdentitySelect() {
 }
 
 function openIdentity() {
-  pendingIdentity = campaign.identityId || null;
+  pendingIdentity = campaign.identityId || DEFAULT_IDENTITY_ID;
   els.identity?.classList.remove('hidden');
   renderIdentitySelect();
 }
