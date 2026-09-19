@@ -44,6 +44,7 @@ import {
   swapLoadoutWithAlbum,
   replaceableSlotIndex,
   switchCandidates,
+  hydrateOwned,
 } from './campaign.js';
 
 function card(partial) {
@@ -652,7 +653,50 @@ test('winning a claim adds cards and tracks ultimates', () => {
   const next = applyWin(campaign, [{ id: 'hellforge', name: 'Hellforge Tyrant' }], BOSSES.find((b) => b.id === 'cindervow'));
   assert.equal(next.player.length, 1);
   assert.equal(next.player[0].id, 'hellforge');
+  assert.ok(next.player[0].uid);
   assert.ok(next.claimedUltimates.includes('hellforge'));
+  assert.deepEqual(next.lastClaimedIds, ['hellforge']);
+  assert.ok(hydrateOwned(next.player[0])?.name);
+});
+
+test('a won boss ultimate appears in switchCandidates and can be seated', () => {
+  const campaign = emptyCampaign();
+  const gale = BOSSES.find((b) => b.id === 'galehart');
+  const ultimateId = 'skyraid';
+  assert.ok(gale.ultimates.includes(ultimateId));
+  assert.equal(campaign.player.some((c) => c.id === ultimateId), false);
+  assert.equal(switchCandidates(campaign).some((c) => c.id === ultimateId), false);
+  const locked = renderAlbumGrid(campaign, campaign.loadout);
+  assert.match(locked, /data-id="skyraid"/);
+  assert.match(locked, /album-tile locked[^>]*data-id="skyraid"|data-id="skyraid"[^>]*aria-disabled/);
+
+  const won = applyWin(campaign, [{ id: ultimateId, uid: 'ai-sky' }], gale);
+  assert.ok(won.player.some((c) => c.id === ultimateId && c.uid && c.uid !== 'ai-sky'));
+  assert.ok(won.lastClaimedIds.includes(ultimateId));
+  assert.ok(won.claimedUltimates.includes(ultimateId));
+  const hydrated = hydrateOwned(won.player.find((c) => c.id === ultimateId));
+  assert.equal(hydrated.id, ultimateId);
+  assert.ok(hydrated.name);
+
+  const cands = switchCandidates(won);
+  assert.equal(cands[0].id, ultimateId);
+  const switchHtml = renderSwitchGrid(cands, ultimateId, won.lastClaimedIds);
+  assert.match(switchHtml, /skyraid/);
+  assert.match(switchHtml, /new-claim/);
+  assert.match(switchHtml, /Switch in/);
+
+  const browse = renderAlbumGrid(won, won.loadout, null, won.lastClaimedIds);
+  assert.match(browse, /album-tile owned[^>]*data-id="skyraid"/);
+  assert.match(browse, /new-claim/);
+  assert.doesNotMatch(browse, /data-id="skyraid"[^>]*>[\s\S]{0,200}album-unknown/);
+
+  const you = identityUid(won);
+  const target = won.loadout.findIndex((uid) => uid !== you);
+  assert.ok(target >= 0);
+  const seated = dragAlbumToSlot(won, ultimateId, target);
+  const seatedUid = seated.player.find((c) => c.id === ultimateId).uid;
+  assert.equal(seated.loadout[target], seatedUid);
+  assert.ok(seated.loadout.includes(you));
 });
 
 test('losing a trade removes the chosen cards from the album', () => {

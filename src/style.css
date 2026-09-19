@@ -1524,7 +1524,8 @@ button {
   cursor: grab;
 }
 
-.album-tile.pick-source {
+.album-tile.pick-source,
+.album-tile.new-claim {
   outline: 3px solid #d4a84a;
   outline-offset: 2px;
   border-radius: 8px;

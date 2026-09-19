@@ -311,38 +311,40 @@ function renderAlbum() {
   const progress = albumProgress(campaign);
   const you = identityUid(campaign);
   const candidates = switchCandidates(campaign);
+  const news = campaign.lastClaimedIds || [];
   const switching = Number.isInteger(pendingSlotIndex);
   const switchingUid = switching ? campaign.loadout[pendingSlotIndex] : null;
   const switchingYou = Boolean(switchingUid && switchingUid === you);
+  const hasNew = news.some((id) => candidates.some((c) => c.id === id));
   if (els.albumProgress) {
     els.albumProgress.textContent = `${progress.owned} / ${progress.total} unique`;
   }
   if (els.albumLede) {
-    els.albumLede.textContent = 'Tap a slot in Your five, then pick from Switch with these. Identity stays pinned as You.';
+    els.albumLede.textContent = hasNew
+      ? 'New card — tap it, then tap a slot in Your five to equip. Identity stays pinned.'
+      : 'Tap a spare card, then a slot — or tap a slot, then a spare. Identity stays pinned as You.';
   }
   if (els.loadoutHint) {
     if (switchingYou) els.loadoutHint.textContent = 'Identity stays pinned. Tap another slot to switch it.';
-    else if (switching) els.loadoutHint.textContent = 'Tap a card under Switch with these, or drag one onto this slot.';
+    else if (switching) els.loadoutHint.textContent = 'Tap a spare under Switch with these, or drag one onto this slot.';
     else if (pendingSwapId) els.loadoutHint.textContent = 'Now tap a slot in Your five.';
-    else els.loadoutHint.textContent = 'Tap a slot to switch it.';
+    else if (hasNew) els.loadoutHint.textContent = 'New card — tap it, then tap a slot to equip.';
+    else els.loadoutHint.textContent = 'Tap a spare, then a slot — or a slot, then a spare.';
   }
   if (els.switchHint) {
-    if (switchingYou) els.switchHint.textContent = 'Your identity cannot be replaced.';
-    else if (switching && !candidates.length) els.switchHint.textContent = 'No spare cards. Win trades to grow the album.';
-    else if (switching) els.switchHint.textContent = 'Owned cards not already in the five, strongest first.';
-    else if (pendingSwapId) els.switchHint.textContent = 'Tap a slot in Your five to place this card.';
-    else els.switchHint.textContent = 'Tap a slot in Your five to change it.';
+    if (switchingYou) els.switchHint.textContent = 'Your identity cannot be replaced. Spare cards stay listed below.';
+    else if (!candidates.length) els.switchHint.textContent = 'No spare cards. Win trades to grow the album.';
+    else if (hasNew) els.switchHint.textContent = 'Newest claims sit first. Tap one, then tap a slot.';
+    else els.switchHint.textContent = 'Owned cards not already in the five, strongest / newest first.';
   }
   if (els.switchPanel) {
-    els.switchPanel.classList.toggle('is-idle', !switching || switchingYou);
-    els.switchPanel.classList.toggle('is-open', switching && !switchingYou);
+    els.switchPanel.classList.toggle('is-idle', !candidates.length);
+    els.switchPanel.classList.toggle('is-open', candidates.length > 0);
   }
   if (els.switchGrid) {
-    els.switchGrid.innerHTML = switching && !switchingYou
-      ? renderSwitchGrid(candidates, pendingSwapId)
-      : '';
+    els.switchGrid.innerHTML = renderSwitchGrid(candidates, pendingSwapId, news);
   }
-  if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout, pendingSwapId);
+  if (els.albumGrid) els.albumGrid.innerHTML = renderAlbumGrid(campaign, campaign.loadout, pendingSwapId, news);
   if (els.albumBrowse) els.albumBrowse.classList.toggle('collapsed', !browseAllOpen);
   if (els.browseAllBtn) els.browseAllBtn.textContent = browseAllOpen ? 'Hide album' : 'Browse all';
   if (els.loadoutRow) {
@@ -371,18 +373,22 @@ function renderAlbum() {
 function openAlbum(intent = 'browse') {
   albumIntent = intent;
   pendingSlotIndex = null;
-  pendingSwapId = null;
+  const news = campaign.lastClaimedIds || [];
+  const firstNew = switchCandidates(campaign).find((c) => news.includes(c.id));
+  pendingSwapId = intent === 'equip' && firstNew ? firstNew.id : null;
   browseAllOpen = false;
   els.album?.classList.remove('hidden');
   renderAlbum();
 }
 
 function closeAlbum() {
+  const returnToTitle = albumIntent === 'equip' && els.title?.classList.contains('hidden');
   pendingSwapId = null;
   pendingSlotIndex = null;
   browseAllOpen = false;
   cleanupDeckDrag();
   els.album?.classList.add('hidden');
+  if (returnToTitle) openTitle();
 }
 
 function confirmAlbum() {
@@ -952,9 +958,16 @@ function confirmClaim() {
   const chosen = tradableCards(claimState.pool).filter((c) => claimState.selected.includes(c.uid));
   if (claimState.mode === 'win') {
     campaign = applyWin(campaign, chosen, session.boss);
-  } else {
-    campaign = applyLoss(campaign, chosen.map((c) => c.uid));
+    persist();
+    els.claim?.classList.add('hidden');
+    els.result?.classList.add('hidden');
+    match = null;
+    session = null;
+    claimState = null;
+    openAlbum('equip');
+    return;
   }
+  campaign = applyLoss(campaign, chosen.map((c) => c.uid));
   persist();
   openTitle();
 }
@@ -1034,6 +1047,13 @@ function finishDeathMatch() {
     );
     const claimed = autoPickHighest(pool.length ? pool : [deathState.aiCard], deathState.take);
     campaign = applyWin(campaign, claimed, boss);
+    persist();
+    els.death.classList.add('hidden');
+    deathState = null;
+    session = null;
+    match = null;
+    openAlbum('equip');
+    return;
   } else if (winner === 'ai') {
     const pool = tradableCards(session?.playerWager?.length ? session.playerWager : campaign.player.map(hydrateOwned));
     const taken = autoPickHighest(pool, deathState.loseTake);

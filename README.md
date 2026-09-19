@@ -47,7 +47,7 @@ Each card prints **four side ranks** — Top, Right, Bottom, Left — in hex **1
 
 A **fresh album** is your **identity card** plus eight **level-1 beasts** (copies of Ember Drake, Nightbloom Witch, and Plaguebloom). You do not start with relics or sovereigns. Stronger cards enter the album when you **win trades**. Names and art are original — no copyrighted FF cards or characters.
 
-The **Album** opens on **Your five**. Tap a slot, then pick from **Switch with these** — only owned cards not already seated, strongest first. Identity stays pinned. Drag still works. **Browse all** expands the full collection (owned face-up, unknowns as silhouettes). The five persist in `localStorage`.
+The **Album** opens on **Your five**. Spare owned cards stay listed under **Switch with these** (newest claims, then strongest). Tap a spare then a slot, or a slot then a spare. After a win the album opens on the new card. Identity stays pinned. **Browse all** expands the full collection. The five persist in `localStorage`.
 
 **Identity** defaults to **Rotbriar** (poison, dark-druid / Sweet-Thorn). You can still change it on the Identity screen. The You card is a strong signature — level 8, sides totaling 30–34 with peaks 8–9 — not a Stage 10 sovereign wall. It always stays in the album and can be one of the five. Existing saves pick up the new stats on load.
 

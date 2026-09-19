@@ -304,9 +304,14 @@ export function firstFreeCopy(campaign, cardId, loadout = campaign?.loadout) {
   return (campaign?.player || []).find((c) => c.id === cardId && !used.has(c.uid)) || null;
 }
 
-/** Owned cards not seated in the five. Identity is never a replacement. Strongest first. */
+/** Owned cards not seated in the five. Identity is never a replacement. Newest claims, then strongest. */
 export function switchCandidates(campaign, loadout = campaign?.loadout) {
   const used = new Set(pruneLoadout({ ...campaign, loadout }));
+  const recent = new Set(campaign?.lastClaimedIds || []);
+  const seenAt = new Map();
+  (campaign?.player || []).forEach((owned, index) => {
+    if (owned?.uid) seenAt.set(owned.uid, index);
+  });
   const byId = new Map();
   for (const owned of campaign?.player || []) {
     if (!owned?.uid || used.has(owned.uid) || isIdentityId(owned.id)) continue;
@@ -316,9 +321,14 @@ export function switchCandidates(campaign, loadout = campaign?.loadout) {
     if (!prev) byId.set(card.id, { ...card, copies: 1 });
     else prev.copies += 1;
   }
-  return [...byId.values()].sort(
-    (a, b) => rankCard(b) - rankCard(a) || String(a.name || a.id).localeCompare(String(b.name || b.id)),
-  );
+  return [...byId.values()].sort((a, b) => {
+    const na = recent.has(a.id) ? 1 : 0;
+    const nb = recent.has(b.id) ? 1 : 0;
+    if (nb !== na) return nb - na;
+    const rank = rankCard(b) - rankCard(a);
+    if (rank) return rank;
+    return (seenAt.get(b.uid) || 0) - (seenAt.get(a.uid) || 0) || String(a.name || a.id).localeCompare(String(b.name || b.id));
+  });
 }
 
 export function sanitizeLoadout(campaign) {
@@ -448,6 +458,7 @@ export function emptyCampaign(options = {}) {
     unlockedStage: 1,
     loadout: [],
     identityId: null,
+    lastClaimedIds: [],
   };
   return bindIdentity(campaign, options.identityId || DEFAULT_IDENTITY_ID);
 }
@@ -484,6 +495,9 @@ export function loadCampaign() {
       unlockedStage,
       identityId,
       loadout: Array.isArray(parsed.loadout) ? parsed.loadout : [],
+      lastClaimedIds: Array.isArray(parsed.lastClaimedIds)
+        ? parsed.lastClaimedIds.filter((id) => cardById(id))
+        : [],
     };
     if (!loaded.player.some((c) => isIdentityId(c.id))) {
       return bindIdentity(loaded, identityId);
@@ -537,14 +551,17 @@ export function applyLoss(campaign, uids) {
 }
 
 export function applyWin(campaign, claimed, boss) {
-  const additions = claimed.map((c) => ownedFromTemplate(c));
+  const additions = (claimed || [])
+    .map((c) => (c?.id && cardById(c.id) && !isIdentityId(c.id) ? ownedFromTemplate(c) : null))
+    .filter(Boolean);
   const cleared = boss?.stage || 1;
   const unlockedStage = Math.min(STAGE_COUNT, Math.max(campaign.unlockedStage || 1, cleared + 1));
   const next = {
     ...campaign,
-    player: [...campaign.player, ...additions],
+    player: [...(campaign.player || []), ...additions],
     claimedUltimates: markClaimedUltimates(campaign, claimed, boss),
     unlockedStage,
+    lastClaimedIds: additions.map((c) => c.id),
   };
   next.loadout = sanitizeLoadout(next);
   return next;
