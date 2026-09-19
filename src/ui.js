@@ -113,7 +113,10 @@ export function renderElementWheel() {
 
 export function clashFlashHtml(battle) {
   const summary = battle?.summary || `${battle?.rawAtk ?? '?'} vs ${battle?.rawDef ?? '?'} — held`;
-  const bits = [`<span class="cf-rank">${escapeText(summary)}</span>`];
+  const [compare, outcome] = String(summary).split(/\s+—\s+/);
+  const bits = [
+    `<span class="cf-rank"><b>${escapeText(compare)}</b>${outcome ? `<i>${escapeText(outcome)}</i>` : ''}</span>`,
+  ];
   if (battle?.elementMod > 0) {
     bits.push(`<span class="cf-el">${ELEMENT_TITLE[battle.attackerElement] || 'Element'} +1</span>`);
   } else if (battle?.elementMod < 0) {

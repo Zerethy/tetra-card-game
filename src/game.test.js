@@ -170,9 +170,11 @@ test('strong placed adjacent to weak captures the weak card', () => {
 test('clash flash always prints the rank compare, even without an element', () => {
   const capture = clashFlashHtml({ summary: '8 vs 3 — capture', rawAtk: 8, rawDef: 3, attackerWins: true, elementMod: 0 });
   assert.match(capture, /cf-rank/);
-  assert.match(capture, /8 vs 3 — capture/);
+  assert.match(capture, /8 vs 3/);
+  assert.match(capture, /capture/);
   const held = clashFlashHtml({ summary: '5 vs 5 — held', rawAtk: 5, rawDef: 5, attackerWins: false, elementMod: 0 });
-  assert.match(held, /5 vs 5 — held/);
+  assert.match(held, /5 vs 5/);
+  assert.match(held, /held/);
 });
 
 test('ties do not capture', () => {

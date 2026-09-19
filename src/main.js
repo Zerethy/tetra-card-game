@@ -758,22 +758,19 @@ function afterPlace(events, who) {
   window.setTimeout(() => {
     captureCells = new Set();
     lastPlaced = null;
-    clashFlashes = new Map();
+    render();
     if (match.phase === 'ended') {
       sfx(match.winner === 'player' ? 'win' : match.winner === 'ai' ? 'lose' : 'place');
-      render();
       busy = false;
       window.setTimeout(openClaim, 720);
     } else if (match.phase === 'ai' && who === 'player') {
       window.setTimeout(aiTurn, 700);
     } else if (match.phase === 'player' && who === 'ai') {
       busy = false;
-      render();
     } else if (match.phase === 'ai') {
       window.setTimeout(aiTurn, 500);
     } else {
       busy = false;
-      render();
     }
   }, 560);
 }
